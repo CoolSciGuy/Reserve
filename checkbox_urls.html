@@ -1,58 +1,106 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Open Multiple Links</title>
+  <title>December 2025 Booking Links</title>
 </head>
 <body>
-  <h2>Select links to open</h2>
+
+  <h2>Select dates in December 2025</h2>
 
   <div id="checkbox-container"></div>
 
   <button id="openButton">Submit</button>
 
   <script>
-    // Define your checkboxes and URLs
-    const boxes = [
-      { label: "Google", url: "https://google.com" },
-      { label: "YouTube", url: "https://youtube.com" },
-      { label: "GitHub", url: "https://github.com" },
-      { label: "Wikipedia", url: "https://wikipedia.org" },
-      { label: "StackOverflow", url: "https://stackoverflow.com" },
-      { label: "MDN Docs", url: "https://developer.mozilla.org" },
-      { label: "Reddit", url: "https://reddit.com" },
-      { label: "CNN", url: "https://cnn.com" },
-      { label: "BBC", url: "https://bbc.com" },
-      { label: "OpenAI", url: "https://openai.com" }
-    ];
+    // --- Base link parameters (ONLY EDIT IF NEEDED!) ---
+    const baseURL = "https://login.agilquest.com/availsearch/list/byassets";
 
+    // Time windows for booking
+    const startHour = 9;
+    const endHour = 17;
+
+    // This function builds the URL for a given day in December 2025
+    function buildLink(day) {
+      const params = new URLSearchParams({
+        attrs: JSON.stringify({ bools: [], strings: [], numberRels: {}, dept: null }),
+        category: 2,
+        cty: "null",
+
+        end: JSON.stringify({
+          year: 2025,
+          month: 12,
+          dayOfMonth: day,
+          hour: endHour,
+          minute: 0,
+          tzIdValue: "America/New_York",
+          discriminator: "AqDate"
+        }),
+
+        fl: 6,
+        fls: "[]",
+
+        loc: JSON.stringify({
+          sysidVenue: 1,
+          sysidVenues: [],
+          tzIdValue: "America/New_York"
+        }),
+
+        rType: 1,
+        rule: JSON.stringify({ flags: { isPattern: false } }),
+
+        start: JSON.stringify({
+          discriminator: "AqDate",
+          dayOfMonth: day,
+          month: 12,
+          year: 2025,
+          hour: startHour,
+          minute: 0,
+          tzIdValue: "America/New_York"
+        }),
+
+        ts: Date.now(),
+        types: "[74,13]"
+      });
+
+      return baseURL + "?" + params.toString();
+    }
+
+    // Generate 31 days for December 2025
     const container = document.getElementById("checkbox-container");
 
-    // Create checkboxes
-    boxes.forEach((item, index) => {
+    for (let day = 1; day <= 31; day++) {
+      const url = buildLink(day);
+
+      // Checkbox
       const checkbox = document.createElement("input");
       checkbox.type = "checkbox";
-      checkbox.id = "box" + index;
+      checkbox.id = "day" + day;
+      checkbox.dataset.url = url;
 
-      const label = document.createElement("label");
-      label.htmlFor = checkbox.id;
-      label.innerText = " " + item.label;
+      // Clickable link label
+      const label = document.createElement("a");
+      label.href = url;
+      label.target = "_blank";
+      label.innerText = ` December ${day}, 2025`;
+      label.style.marginLeft = "6px";
 
       const line = document.createElement("div");
       line.appendChild(checkbox);
       line.appendChild(label);
 
       container.appendChild(line);
-    });
+    }
 
-    // Submit button: open ALL checked links
+    // Submit: open all selected dates
     document.getElementById("openButton").addEventListener("click", () => {
-      boxes.forEach((item, index) => {
-        const cb = document.getElementById("box" + index);
+      const checkboxes = document.querySelectorAll("#checkbox-container input[type='checkbox']");
+      checkboxes.forEach(cb => {
         if (cb.checked) {
-          window.open(item.url, "_blank");
+          window.open(cb.dataset.url, "_blank");
         }
       });
     });
   </script>
+
 </body>
 </html>
