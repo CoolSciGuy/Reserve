@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Checkbox URL Launcher</title>
+  <title>Open Multiple Links</title>
 </head>
 <body>
-  <h2>Open links by checking boxes</h2>
+  <h2>Select links to open</h2>
 
   <div id="checkbox-container"></div>
 
+  <button id="openButton">Submit</button>
+
   <script>
+    // Define your checkboxes and URLs
     const boxes = [
       { label: "Google", url: "https://google.com" },
       { label: "YouTube", url: "https://youtube.com" },
@@ -24,16 +27,11 @@
 
     const container = document.getElementById("checkbox-container");
 
+    // Create checkboxes
     boxes.forEach((item, index) => {
       const checkbox = document.createElement("input");
       checkbox.type = "checkbox";
       checkbox.id = "box" + index;
-
-      checkbox.addEventListener("change", function() {
-        if (this.checked) {
-          window.open(item.url, "_blank");
-        }
-      });
 
       const label = document.createElement("label");
       label.htmlFor = checkbox.id;
@@ -44,6 +42,16 @@
       line.appendChild(label);
 
       container.appendChild(line);
+    });
+
+    // Submit button: open ALL checked links
+    document.getElementById("openButton").addEventListener("click", () => {
+      boxes.forEach((item, index) => {
+        const cb = document.getElementById("box" + index);
+        if (cb.checked) {
+          window.open(item.url, "_blank");
+        }
+      });
     });
   </script>
 </body>
