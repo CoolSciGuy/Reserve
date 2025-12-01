@@ -1,34 +1,38 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>December 2025 Booking Links</title>
+  <title>Next Pay Period Booking Links</title>
 </head>
 <body>
 
-  <h2>Select dates in December 2025</h2>
+  <h2>Select Dates for NEXT Pay Period</h2>
+  <p>(Automatically generated from today's date)</p>
 
   <div id="checkbox-container"></div>
 
   <button id="openButton">Submit</button>
 
   <script>
-    // --- Base link parameters (ONLY EDIT IF NEEDED!) ---
-    const baseURL = "https://login.agilquest.com/availsearch/list/byassets";
-
-    // Time windows for booking
+    // ---- CONFIG: You can change times here ----
     const startHour = 9;
     const endHour = 17;
+    const baseURL = "https://login.agilquest.com/availsearch/list/byassets";
+    const PAY_PERIOD_LENGTH = 14; // 14 days
 
-    // This function builds the URL for a given day in December 2025
-    function buildLink(day) {
+    // Build AgilQuest booking link for a given date
+    function buildLink(dateObj) {
+      const year = dateObj.getFullYear();
+      const month = dateObj.getMonth() + 1; // JS months are 0-11
+      const day = dateObj.getDate();
+
       const params = new URLSearchParams({
         attrs: JSON.stringify({ bools: [], strings: [], numberRels: {}, dept: null }),
         category: 2,
         cty: "null",
 
         end: JSON.stringify({
-          year: 2025,
-          month: 12,
+          year: year,
+          month: month,
           dayOfMonth: day,
           hour: endHour,
           minute: 0,
@@ -51,8 +55,8 @@
         start: JSON.stringify({
           discriminator: "AqDate",
           dayOfMonth: day,
-          month: 12,
-          year: 2025,
+          month: month,
+          year: year,
           hour: startHour,
           minute: 0,
           tzIdValue: "America/New_York"
@@ -65,33 +69,54 @@
       return baseURL + "?" + params.toString();
     }
 
-    // Generate 31 days for December 2025
+    // Determine today's date
+    const today = new Date();
+
+    // Next pay period starts 14 days after today
+    const nextPeriodStart = new Date(today);
+    nextPeriodStart.setDate(today.getDate() + PAY_PERIOD_LENGTH);
+
+    // End of next pay period (also 14 days long)
+    const nextPeriodEnd = new Date(nextPeriodStart);
+    nextPeriodEnd.setDate(nextPeriodStart.getDate() + PAY_PERIOD_LENGTH - 1);
+
+    // Generate HTML checkboxes for all 14 days in NEXT pay period
     const container = document.getElementById("checkbox-container");
 
-    for (let day = 1; day <= 31; day++) {
-      const url = buildLink(day);
+    for (let i = 0; i < PAY_PERIOD_LENGTH; i++) {
+      const dateObj = new Date(nextPeriodStart);
+      dateObj.setDate(nextPeriodStart.getDate() + i);
 
-      // Checkbox
+      const url = buildLink(dateObj);
+
+      // Format readable date
+      const dateString = dateObj.toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "long",
+        day: "numeric",
+        year: "numeric"
+      });
+
+      // Checkbox element
       const checkbox = document.createElement("input");
       checkbox.type = "checkbox";
-      checkbox.id = "day" + day;
+      checkbox.id = "day" + i;
       checkbox.dataset.url = url;
 
-      // Clickable link label
+      // Hyperlinked label
       const label = document.createElement("a");
       label.href = url;
       label.target = "_blank";
-      label.innerText = ` December ${day}, 2025`;
+      label.innerText = " " + dateString;
       label.style.marginLeft = "6px";
 
       const line = document.createElement("div");
       line.appendChild(checkbox);
       line.appendChild(label);
-
       container.appendChild(line);
     }
 
-    // Submit: open all selected dates
+    // Submit button: open selected URLs
     document.getElementById("openButton").addEventListener("click", () => {
       const checkboxes = document.querySelectorAll("#checkbox-container input[type='checkbox']");
       checkboxes.forEach(cb => {
