@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Checkbox URL Launcher</title>
+</head>
+<body>
+  <h2>Open links by checking boxes</h2>
+
+  <div id="checkbox-container"></div>
+
+  <script>
+    const boxes = [
+      { label: "Google", url: "https://google.com" },
+      { label: "YouTube", url: "https://youtube.com" },
+      { label: "GitHub", url: "https://github.com" },
+      { label: "Wikipedia", url: "https://wikipedia.org" },
+      { label: "StackOverflow", url: "https://stackoverflow.com" },
+      { label: "MDN Docs", url: "https://developer.mozilla.org" },
+      { label: "Reddit", url: "https://reddit.com" },
+      { label: "CNN", url: "https://cnn.com" },
+      { label: "BBC", url: "https://bbc.com" },
+      { label: "OpenAI", url: "https://openai.com" }
+    ];
+
+    const container = document.getElementById("checkbox-container");
+
+    boxes.forEach((item, index) => {
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.id = "box" + index;
+
+      checkbox.addEventListener("change", function() {
+        if (this.checked) {
+          window.open(item.url, "_blank");
+        }
+      });
+
+      const label = document.createElement("label");
+      label.htmlFor = checkbox.id;
+      label.innerText = " " + item.label;
+
+      const line = document.createElement("div");
+      line.appendChild(checkbox);
+      line.appendChild(label);
+
+      container.appendChild(line);
+    });
+  </script>
+</body>
+</html>
