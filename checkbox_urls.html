@@ -2,34 +2,60 @@
 <html>
 <head>
   <title>Next Pay Period Booking Links</title>
+  <style>
+    .week-container {
+      margin-bottom: 20px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    .week-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .date-line {
+      margin: 4px 0;
+    }
+  </style>
 </head>
 <body>
 
-  <h2>Select Dates for NEXT Pay Period</h2>
+  <!-- Login link at top -->
+  <h3>
+    <a href="https://ds4114.github.io/agil/index.html" target="_blank">
+      Login first
+    </a>
+  </h3>
+
+  <h2>Select Dates for NEXT Pay Period (Weekdays Only)</h2>
   <p>(Automatically generated from today's date)</p>
 
-  <div id="checkbox-container"></div>
+  <div id="week1" class="week-container">
+    <div class="week-title">Week 1</div>
+  </div>
+
+  <div id="week2" class="week-container">
+    <div class="week-title">Week 2</div>
+  </div>
 
   <button id="openButton">Submit</button>
 
   <script>
-    // ---- CONFIG: You can change times here ----
     const startHour = 9;
     const endHour = 17;
     const baseURL = "https://login.agilquest.com/availsearch/list/byassets";
-    const PAY_PERIOD_LENGTH = 14; // 14 days
+    const PAY_PERIOD_LENGTH = 14; // total weekdays
 
-    // Build AgilQuest booking link for a given date
+    // Build AgilQuest booking link
     function buildLink(dateObj) {
       const year = dateObj.getFullYear();
-      const month = dateObj.getMonth() + 1; // JS months are 0-11
+      const month = dateObj.getMonth() + 1;
       const day = dateObj.getDate();
 
       const params = new URLSearchParams({
         attrs: JSON.stringify({ bools: [], strings: [], numberRels: {}, dept: null }),
         category: 2,
         cty: "null",
-
         end: JSON.stringify({
           year: year,
           month: month,
@@ -39,19 +65,15 @@
           tzIdValue: "America/New_York",
           discriminator: "AqDate"
         }),
-
         fl: 6,
         fls: "[]",
-
         loc: JSON.stringify({
           sysidVenue: 1,
           sysidVenues: [],
           tzIdValue: "America/New_York"
         }),
-
         rType: 1,
         rule: JSON.stringify({ flags: { isPattern: false } }),
-
         start: JSON.stringify({
           discriminator: "AqDate",
           dayOfMonth: day,
@@ -61,7 +83,6 @@
           minute: 0,
           tzIdValue: "America/New_York"
         }),
-
         ts: Date.now(),
         types: "[74,13]"
       });
@@ -69,56 +90,62 @@
       return baseURL + "?" + params.toString();
     }
 
-    // Determine today's date
     const today = new Date();
-
-    // Next pay period starts 14 days after today
     const nextPeriodStart = new Date(today);
     nextPeriodStart.setDate(today.getDate() + PAY_PERIOD_LENGTH);
 
-    // End of next pay period (also 14 days long)
-    const nextPeriodEnd = new Date(nextPeriodStart);
-    nextPeriodEnd.setDate(nextPeriodStart.getDate() + PAY_PERIOD_LENGTH - 1);
+    let addedDays = 0;
+    let i = 0;
 
-    // Generate HTML checkboxes for all 14 days in NEXT pay period
-    const container = document.getElementById("checkbox-container");
+    const week1Container = document.getElementById("week1");
+    const week2Container = document.getElementById("week2");
 
-    for (let i = 0; i < PAY_PERIOD_LENGTH; i++) {
+    while (addedDays < PAY_PERIOD_LENGTH) {
       const dateObj = new Date(nextPeriodStart);
       dateObj.setDate(nextPeriodStart.getDate() + i);
 
-      const url = buildLink(dateObj);
+      const dayOfWeek = dateObj.getDay(); // 0 = Sunday, 6 = Saturday
+      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+        const url = buildLink(dateObj);
 
-      // Format readable date
-      const dateString = dateObj.toLocaleDateString("en-US", {
-        weekday: "short",
-        month: "long",
-        day: "numeric",
-        year: "numeric"
-      });
+        const dateString = dateObj.toLocaleDateString("en-US", {
+          weekday: "short",
+          month: "long",
+          day: "numeric",
+          year: "numeric"
+        });
 
-      // Checkbox element
-      const checkbox = document.createElement("input");
-      checkbox.type = "checkbox";
-      checkbox.id = "day" + i;
-      checkbox.dataset.url = url;
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.id = "day" + addedDays;
+        checkbox.dataset.url = url;
 
-      // Hyperlinked label
-      const label = document.createElement("a");
-      label.href = url;
-      label.target = "_blank";
-      label.innerText = " " + dateString;
-      label.style.marginLeft = "6px";
+        const label = document.createElement("a");
+        label.href = url;
+        label.target = "_blank";
+        label.innerText = " " + dateString;
+        label.style.marginLeft = "6px";
 
-      const line = document.createElement("div");
-      line.appendChild(checkbox);
-      line.appendChild(label);
-      container.appendChild(line);
+        const line = document.createElement("div");
+        line.className = "date-line";
+        line.appendChild(checkbox);
+        line.appendChild(label);
+
+        // Separate week 1 and week 2
+        if (addedDays < PAY_PERIOD_LENGTH / 2) {
+          week1Container.appendChild(line);
+        } else {
+          week2Container.appendChild(line);
+        }
+
+        addedDays++;
+      }
+      i++;
     }
 
-    // Submit button: open selected URLs
+    // Submit button opens all selected URLs
     document.getElementById("openButton").addEventListener("click", () => {
-      const checkboxes = document.querySelectorAll("#checkbox-container input[type='checkbox']");
+      const checkboxes = document.querySelectorAll("input[type='checkbox']");
       checkboxes.forEach(cb => {
         if (cb.checked) {
           window.open(cb.dataset.url, "_blank");
