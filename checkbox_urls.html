@@ -20,7 +20,7 @@
 </head>
 <body>
 
-  <!-- Login link at top -->
+  <!-- Login link -->
   <h3>
     <a href="https://ds4114.github.io/agil/index.html" target="_blank">
       Login first
@@ -44,9 +44,9 @@
     const startHour = 9;
     const endHour = 17;
     const baseURL = "https://login.agilquest.com/availsearch/list/byassets";
-    const PAY_PERIOD_LENGTH = 14; // total weekdays
+    const TOTAL_WEEKDAYS = 10; // total weekdays in next pay period
+    const WEEKDAYS_PER_CONTAINER = 5;
 
-    // Build AgilQuest booking link
     function buildLink(dateObj) {
       const year = dateObj.getFullYear();
       const month = dateObj.getMonth() + 1;
@@ -92,15 +92,15 @@
 
     const today = new Date();
     const nextPeriodStart = new Date(today);
-    nextPeriodStart.setDate(today.getDate() + PAY_PERIOD_LENGTH);
-
-    let addedDays = 0;
-    let i = 0;
+    nextPeriodStart.setDate(today.getDate() + 14); // next pay period starts 14 days after today
 
     const week1Container = document.getElementById("week1");
     const week2Container = document.getElementById("week2");
 
-    while (addedDays < PAY_PERIOD_LENGTH) {
+    let addedWeekdays = 0;
+    let i = 0;
+
+    while (addedWeekdays < TOTAL_WEEKDAYS) {
       const dateObj = new Date(nextPeriodStart);
       dateObj.setDate(nextPeriodStart.getDate() + i);
 
@@ -117,7 +117,7 @@
 
         const checkbox = document.createElement("input");
         checkbox.type = "checkbox";
-        checkbox.id = "day" + addedDays;
+        checkbox.id = "day" + addedWeekdays;
         checkbox.dataset.url = url;
 
         const label = document.createElement("a");
@@ -131,14 +131,14 @@
         line.appendChild(checkbox);
         line.appendChild(label);
 
-        // Separate week 1 and week 2
-        if (addedDays < PAY_PERIOD_LENGTH / 2) {
+        // Week 1 = first 5 weekdays, Week 2 = next 5 weekdays
+        if (addedWeekdays < WEEKDAYS_PER_CONTAINER) {
           week1Container.appendChild(line);
         } else {
           week2Container.appendChild(line);
         }
 
-        addedDays++;
+        addedWeekdays++;
       }
       i++;
     }
