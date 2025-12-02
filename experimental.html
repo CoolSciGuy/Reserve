@@ -212,6 +212,23 @@
         }
       });
     });
+
+    // Preselect rules
+function week1Rules(dayName) {
+  return ["Monday", "Tuesday", "Thursday"].includes(dayName);
+}
+
+function week2Rules(dayName) {
+  return dayName !== "Tuesday"; // Select all except Tuesday
+}
+
+document.getElementById("week1").innerHTML = "<h2>Week 1</h2>";
+document.getElementById("week2").innerHTML = "<h2>Week 2</h2>";
+
+createCheckboxes(week1, "week1", week1Rules);
+createCheckboxes(week2, "week2", week2Rules);
+
+    
   </script>
 
 </body>
