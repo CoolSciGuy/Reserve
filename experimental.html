@@ -31,7 +31,7 @@
     </a>
   </h3>
 
-  <h2>Select Dates for NEXT Pay Period </h2>
+  <h2>Select Dates for NEXT Pay Period (Weekdays Only)</h2>
 
   <div id="week1" class="week-container">
     <div class="week-title">Week 1</div>
@@ -49,47 +49,68 @@
     const baseURL = "https://login.agilquest.com/availsearch/list/byassets";
     const WEEKDAYS_PER_WEEK = 5;
 
-    // Federal holidays 2025–2027 (MM-DD-YYYY format)
+    // Federal holidays 2025–2027
     const federalHolidays = {
-      // 2025
-      "01-01-2025": "New Year's Day",
-      "01-20-2025": "Martin Luther King Jr. Day",
-      "02-17-2025": "Presidents' Day",
-      "05-26-2025": "Memorial Day",
-      "06-19-2025": "Juneteenth",
-      "07-04-2025": "Independence Day",
-      "09-01-2025": "Labor Day",
-      "10-13-2025": "Columbus Day",
-      "11-11-2025": "Veterans Day",
-      "11-27-2025": "Thanksgiving Day",
-      "12-25-2025": "Christmas Day",
-      
-      // 2026
-      "01-01-2026": "New Year's Day",
-      "01-19-2026": "Martin Luther King Jr. Day",
-      "02-16-2026": "Presidents' Day",
-      "05-25-2026": "Memorial Day",
-      "06-19-2026": "Juneteenth",
-      "07-03-2026": "Independence Day (Observed)",
-      "09-07-2026": "Labor Day",
-      "10-12-2026": "Columbus Day",
-      "11-11-2026": "Veterans Day",
-      "11-26-2026": "Thanksgiving Day",
-      "12-25-2026": "Christmas Day",
-      
-      // 2027
-      "01-01-2027": "New Year's Day",
-      "01-18-2027": "Martin Luther King Jr. Day",
-      "02-15-2027": "Presidents' Day",
-      "05-31-2027": "Memorial Day",
-      "06-18-2027": "Juneteenth (Observed)",
-      "07-05-2027": "Independence Day (Observed)",
-      "09-06-2027": "Labor Day",
-      "10-11-2027": "Columbus Day",
-      "11-11-2027": "Veterans Day",
-      "11-25-2027": "Thanksgiving Day",
-      "12-24-2027": "Christmas Day (Observed)"
+      "01-01-2025":"New Year's Day","01-20-2025":"Martin Luther King Jr. Day","02-17-2025":"Presidents' Day",
+      "05-26-2025":"Memorial Day","06-19-2025":"Juneteenth","07-04-2025":"Independence Day",
+      "09-01-2025":"Labor Day","10-13-2025":"Columbus Day","11-11-2025":"Veterans Day",
+      "11-27-2025":"Thanksgiving Day","12-25-2025":"Christmas Day",
+      "01-01-2026":"New Year's Day","01-19-2026":"Martin Luther King Jr. Day","02-16-2026":"Presidents' Day",
+      "05-25-2026":"Memorial Day","06-19-2026":"Juneteenth","07-03-2026":"Independence Day (Observed)",
+      "09-07-2026":"Labor Day","10-12-2026":"Columbus Day","11-11-2026":"Veterans Day",
+      "11-26-2026":"Thanksgiving Day","12-25-2026":"Christmas Day",
+      "01-01-2027":"New Year's Day","01-18-2027":"Martin Luther King Jr. Day","02-15-2027":"Presidents' Day",
+      "05-31-2027":"Memorial Day","06-18-2027":"Juneteenth (Observed)","07-05-2027":"Independence Day (Observed)",
+      "09-06-2027":"Labor Day","10-11-2027":"Columbus Day","11-11-2027":"Veterans Day",
+      "11-25-2027":"Thanksgiving Day","12-24-2027":"Christmas Day (Observed)"
     };
+
+    // --- Build pay period database (2-week periods from today to 12/31/2026) ---
+    const payPeriods = [];
+    const today = new Date();
+    const endDate = new Date('2026-12-31');
+
+    let current = new Date(today);
+
+    while (current <= endDate) {
+      const start = new Date(current);
+      const end = new Date(current);
+      end.setDate(start.getDate() + 13); // 2-week period
+      payPeriods.push({start, end});
+      current.setDate(current.getDate() + 14);
+    }
+
+    // Find current pay period
+    const now = new Date();
+    let nextPayPeriod = null;
+    for (let i = 0; i < payPeriods.length; i++) {
+      const pp = payPeriods[i];
+      if (now >= pp.start && now <= pp.end) {
+        if (i + 1 < payPeriods.length) {
+          nextPayPeriod = payPeriods[i + 1];
+        }
+        break;
+      }
+    }
+    if (!nextPayPeriod) {
+      nextPayPeriod = payPeriods[payPeriods.length-1]; // fallback
+    }
+
+    // --- Find first and second Monday of next pay period ---
+    function getMonday(d) {
+      const day = d.getDay();
+      const diff = (1 + 7 - day) % 7; // days until Monday
+      const monday = new Date(d);
+      monday.setDate(d.getDate() + diff);
+      return monday;
+    }
+
+    const week1Start = getMonday(nextPayPeriod.start);
+    const week2Start = new Date(week1Start);
+    week2Start.setDate(week1Start.getDate() + 7);
+
+    const week1Container = document.getElementById("week1");
+    const week2Container = document.getElementById("week2");
 
     function buildLink(dateObj) {
       const year = dateObj.getFullYear();
@@ -111,53 +132,26 @@
         }),
         fl: 6,
         fls: "[]",
-        loc: JSON.stringify({
-          sysidVenue: 1,
-          sysidVenues: [],
-          tzIdValue: "America/New_York"
-        }),
+        loc: JSON.stringify({ sysidVenue:1, sysidVenues:[], tzIdValue:"America/New_York"}),
         rType: 1,
-        rule: JSON.stringify({ flags: { isPattern: false } }),
+        rule: JSON.stringify({flags:{isPattern:false}}),
         start: JSON.stringify({
-          discriminator: "AqDate",
-          dayOfMonth: day,
-          month: month,
-          year: year,
-          hour: startHour,
-          minute: 0,
-          tzIdValue: "America/New_York"
+          discriminator:"AqDate", dayOfMonth:day, month:month, year:year,
+          hour:startHour, minute:0, tzIdValue:"America/New_York"
         }),
         ts: Date.now(),
-        types: "[74,13]"
+        types:"[74,13]"
       });
-
       return baseURL + "?" + params.toString();
     }
 
     function getHolidayName(dateObj) {
       const year = dateObj.getFullYear();
-      const mm = String(dateObj.getMonth() + 1).padStart(2, "0");
-      const dd = String(dateObj.getDate()).padStart(2, "0");
+      const mm = String(dateObj.getMonth()+1).padStart(2,"0");
+      const dd = String(dateObj.getDate()).padStart(2,"0");
       const key = `${mm}-${dd}-${year}`;
       return federalHolidays[key] || null;
     }
-
-    // --- Calculate first Monday of next pay period ---
-    const today = new Date();
-    let firstMondayNextPeriod = new Date(today);
-    firstMondayNextPeriod.setDate(today.getDate() + 14); // start of next pay period
-
-    // Move to Monday
-    const dow = firstMondayNextPeriod.getDay();
-    const daysUntilMonday = (1 + 7 - dow) % 7;
-    firstMondayNextPeriod.setDate(firstMondayNextPeriod.getDate() + daysUntilMonday);
-
-    // Week 2 starts 1 week later
-    let secondMondayNextPeriod = new Date(firstMondayNextPeriod);
-    secondMondayNextPeriod.setDate(firstMondayNextPeriod.getDate() + 7);
-
-    const week1Container = document.getElementById("week1");
-    const week2Container = document.getElementById("week2");
 
     function addWeek(container, startDate) {
       let addedDays = 0;
@@ -165,39 +159,31 @@
       while (addedDays < WEEKDAYS_PER_WEEK) {
         const dateObj = new Date(startDate);
         dateObj.setDate(startDate.getDate() + i);
-
-        const dayOfWeek = dateObj.getDay();
-        if (dayOfWeek !== 0 && dayOfWeek !== 6) { // skip weekends
+        const dow = dateObj.getDay();
+        if(dow !==0 && dow !==6) { // skip weekends
           const url = buildLink(dateObj);
-          const dateString = dateObj.toLocaleDateString("en-US", {
-            weekday: "short",
-            month: "long",
-            day: "numeric",
-            year: "numeric"
-          });
-
+          const dateString = dateObj.toLocaleDateString("en-US", {weekday:"short", month:"long", day:"numeric", year:"numeric"});
           const checkbox = document.createElement("input");
-          checkbox.type = "checkbox";
-          checkbox.id = "day" + container.id + addedDays;
-          checkbox.dataset.url = url;
+          checkbox.type="checkbox";
+          checkbox.dataset.url=url;
 
           const label = document.createElement("a");
-          label.href = url;
-          label.target = "_blank";
-          label.innerText = " " + dateString;
-          label.style.marginLeft = "6px";
+          label.href=url;
+          label.target="_blank";
+          label.innerText=" "+dateString;
+          label.style.marginLeft="6px";
 
           const line = document.createElement("div");
-          line.className = "date-line";
+          line.className="date-line";
           line.appendChild(checkbox);
           line.appendChild(label);
 
           const holidayName = getHolidayName(dateObj);
-          if (holidayName) {
-            const holidayLabel = document.createElement("span");
-            holidayLabel.className = "holiday";
-            holidayLabel.innerText = " (" + holidayName + ")";
-            line.appendChild(holidayLabel);
+          if(holidayName){
+            const span = document.createElement("span");
+            span.className="holiday";
+            span.innerText=" ("+holidayName+")";
+            line.appendChild(span);
           }
 
           container.appendChild(line);
@@ -207,19 +193,18 @@
       }
     }
 
-    addWeek(week1Container, firstMondayNextPeriod);
-    addWeek(week2Container, secondMondayNextPeriod);
+    addWeek(week1Container, week1Start);
+    addWeek(week2Container, week2Start);
 
-    document.getElementById("openButton").addEventListener("click", () => {
+    document.getElementById("openButton").addEventListener("click", ()=>{
       const checkboxes = document.querySelectorAll("input[type='checkbox']");
-      checkboxes.forEach(cb => {
-        if (cb.checked) {
-          window.open(cb.dataset.url, "_blank");
+      checkboxes.forEach(cb=>{
+        if(cb.checked){
+          window.open(cb.dataset.url,"_blank");
         }
       });
     });
 
   </script>
-
 </body>
 </html>
