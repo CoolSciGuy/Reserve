@@ -1,222 +1,127 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Next Pay Period Booking Links (with Holidays)</title>
-  <style>
-    .week-container {
-      margin-bottom: 20px;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
-    .week-title {
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-    .date-line {
-      margin: 4px 0;
-    }
-    .holiday {
-      font-weight: bold;
-      color: red;
-      margin-left: 6px;
-    }
-  </style>
+<title>Pay Period Links</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 20px; }
+  .container { margin-bottom: 30px; padding: 15px; border: 1px solid #ccc; border-radius: 8px; }
+  .day-box { display: block; margin: 8px 0; }
+  .holiday { color: darkred; font-weight: bold; }
+</style>
 </head>
 <body>
 
-  <h3>
-    <a href="https://ds4114.github.io/agil/index.html" target="_blank">
-      Login first
-    </a>
-  </h3>
+<h2><a href="https://ds4114.github.io/agil/index.html" target="_blank">Login first</a></h2>
+<h1>Next Pay Period Days</h1>
 
-  <h2>Select Dates for NEXT Pay Period (Weekdays Only)</h2>
-  <p>(Automatically generated from today's date)</p>
+<div id="week1" class="container"><h2>Week 1</h2></div>
+<div id="week2" class="container"><h2>Week 2</h2></div>
 
-  <div id="week1" class="week-container">
-    <div class="week-title">Week 1</div>
-  </div>
+<button onclick="openChecked()">Open Selected Links</button>
 
-  <div id="week2" class="week-container">
-    <div class="week-title">Week 2</div>
-  </div>
+<script>
+// ----------------------------
+// Federal holidays 2025–2027
+// ----------------------------
+const holidays = {
+  "2025-01-01": "New Year's Day",
+  "2025-01-20": "Martin Luther King Jr. Day",
+  "2025-02-17": "Washington's Birthday",
+  "2025-05-26": "Memorial Day",
+  "2025-07-04": "Independence Day",
+  "2025-09-01": "Labor Day",
+  "2025-10-13": "Columbus Day",
+  "2025-11-11": "Veterans Day",
+  "2025-11-27": "Thanksgiving Day",
+  "2025-12-25": "Christmas Day",
 
-  <button id="openButton">Submit</button>
+  "2026-01-01": "New Year's Day",
+  "2026-01-19": "Martin Luther King Jr. Day",
+  "2026-02-16": "Washington's Birthday",
+  "2026-05-25": "Memorial Day",
+  "2026-07-03": "Independence Day (Observed)",
+  "2026-09-07": "Labor Day",
+  "2026-10-12": "Columbus Day",
+  "2026-11-11": "Veterans Day",
+  "2026-11-26": "Thanksgiving Day",
+  "2026-12-25": "Christmas Day",
 
-  <script>
-    const startHour = 9;
-    const endHour = 17;
-    const baseURL = "https://login.agilquest.com/availsearch/list/byassets";
-    const TOTAL_WEEKDAYS = 10;
-    const WEEKDAYS_PER_CONTAINER = 5;
+  "2027-01-01": "New Year's Day",
+  "2027-01-18": "Martin Luther King Jr. Day",
+  "2027-02-15": "Washington's Birthday",
+  "2027-05-31": "Memorial Day",
+  "2027-07-05": "Independence Day (Observed)",
+  "2027-09-06": "Labor Day",
+  "2027-10-11": "Columbus Day",
+  "2027-11-11": "Veterans Day",
+  "2027-11-25": "Thanksgiving Day",
+  "2027-12-24": "Christmas Day (Observed)"
+};
 
-    // Federal holidays for 2025–2027 (MM-DD format for look-up)
-    const federalHolidays = {
-      // 2025 — you can keep or expand if you want
-      "01-01": "New Year's Day",
-      "01-20": "Martin Luther King Jr. Day",
-      "02-17": "Presidents' Day",
-      "05-26": "Memorial Day",
-      "06-19": "Juneteenth National Independence Day",
-      "07-04": "Independence Day",
-      "09-01": "Labor Day",
-      "10-13": "Columbus Day",
-      "11-11": "Veterans Day",
-      "11-27": "Thanksgiving Day",
-      "12-25": "Christmas Day",
+// ----------------------------
+// Generate next pay-period weekdays
+// ----------------------------
+function generatePayPeriodDays() {
+  const today = new Date();
+  let date = new Date(today);
 
-      // 2026
-      "01-01-2026": "New Year's Day",
-      "01-19-2026": "Martin Luther King Jr. Day",
-      "02-16-2026": "Washington's Birthday",
-      "05-25-2026": "Memorial Day",
-      "06-19-2026": "Juneteenth National Independence Day",
-      "07-03-2026": "Independence Day (observed)",
-      "09-07-2026": "Labor Day",
-      "10-12-2026": "Columbus Day",
-      "11-11-2026": "Veterans Day",
-      "11-26-2026": "Thanksgiving Day",
-      "12-25-2026": "Christmas Day",
+  const week1Div = document.getElementById("week1");
+  const week2Div = document.getElementById("week2");
 
-      // 2027
-      "01-01-2027": "New Year's Day",
-      "01-18-2027": "Martin Luther King Jr. Day",
-      "02-15-2027": "Washington's Birthday",
-      "05-31-2027": "Memorial Day",
-      "06-18-2027": "Juneteenth National Independence Day (observed)",
-      "07-05-2027": "Independence Day (observed)",
-      "09-06-2027": "Labor Day",
-      "10-11-2027": "Columbus Day",
-      "11-11-2027": "Veterans Day",
-      "11-25-2027": "Thanksgiving Day",
-      "12-24-2027": "Christmas Day (observed)"
-    };
+  let weekdayCount = 0;
+  let week = 1;
 
-    function buildLink(dateObj) {
-      const year = dateObj.getFullYear();
-      const month = dateObj.getMonth() + 1;
-      const day = dateObj.getDate();
+  for (let i = 0; i < 20; i++) {  
+    date.setDate(date.getDate() + (i === 0 ? 0 : 1)); // advance dates
 
-      const params = new URLSearchParams({
-        attrs: JSON.stringify({ bools: [], strings: [], numberRels: {}, dept: null }),
-        category: 2,
-        cty: "null",
-        end: JSON.stringify({
-          year: year,
-          month: month,
-          dayOfMonth: day,
-          hour: endHour,
-          minute: 0,
-          tzIdValue: "America/New_York",
-          discriminator: "AqDate"
-        }),
-        fl: 6,
-        fls: "[]",
-        loc: JSON.stringify({
-          sysidVenue: 1,
-          sysidVenues: [],
-          tzIdValue: "America/New_York"
-        }),
-        rType: 1,
-        rule: JSON.stringify({ flags: { isPattern: false } }),
-        start: JSON.stringify({
-          discriminator: "AqDate",
-          dayOfMonth: day,
-          month: month,
-          year: year,
-          hour: startHour,
-          minute: 0,
-          tzIdValue: "America/New_York"
-        }),
-        ts: Date.now(),
-        types: "[74,13]"
-      });
+    const dayOfWeek = date.getDay();
+    if (dayOfWeek === 0 || dayOfWeek === 6) continue; // skip weekends
 
-      return baseURL + "?" + params.toString();
-    }
+    weekdayCount++;
+    if (weekdayCount > 5) week = 2;
 
-    function getHolidayName(dateObj) {
-      const year = dateObj.getFullYear();
-      const mm = String(dateObj.getMonth() + 1).padStart(2, "0");
-      const dd = String(dateObj.getDate()).padStart(2, "0");
-      const key1 = mm + "-" + dd + "-" + year;
-      const key2 = mm + "-" + dd; // fallback if you also want recurring
-      return federalHolidays[key1] || federalHolidays[key2] || null;
-    }
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, "0");
+    const dd = String(date.getDate()).padStart(2, "0");
+    const dateStr = `${yyyy}-${mm}-${dd}`;
 
-    const today = new Date();
-    const nextPeriodStart = new Date(today);
-    nextPeriodStart.setDate(today.getDate() + 14);
+    const isHoliday = holidays[dateStr] !== undefined;
+    const holidayName = holidays[dateStr] || "";
 
-    const week1Container = document.getElementById("week1");
-    const week2Container = document.getElementById("week2");
+    const url = `https://example.com/day=${dateStr}`;
 
-    let addedWeekdays = 0;
-    let i = 0;
+    // Preselect rules:
+    // Week 1 → Monday(1) Tuesday(2) Thursday(4)
+    // Week 2 → All except Tuesday(2)
+    const isChecked =
+      (week === 1 && (dayOfWeek === 1 || dayOfWeek === 2 || dayOfWeek === 4)) ||
+      (week === 2 && dayOfWeek !== 2);
 
-    while (addedWeekdays < TOTAL_WEEKDAYS) {
-      const dateObj = new Date(nextPeriodStart);
-      dateObj.setDate(nextPeriodStart.getDate() + i);
+    const boxHTML = `
+      <label class="day-box ${isHoliday ? 'holiday' : ''}">
+        <input type="checkbox" data-url="${url}" ${isChecked ? "checked" : ""}>
+        ${dateStr} — <a href="${url}" target="_blank">${url}</a>
+        ${isHoliday ? `<strong> — ${holidayName}</strong>` : ""}
+      </label>
+    `;
 
-      const dayOfWeek = dateObj.getDay(); // 0 = Sunday, 6 = Saturday
-      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-        const url = buildLink(dateObj);
-        const dateString = dateObj.toLocaleDateString("en-US", {
-          weekday: "short",
-          month: "long",
-          day: "numeric",
-          year: "numeric"
-        });
+    if (week === 1) week1Div.innerHTML += boxHTML;
+    else week2Div.innerHTML += boxHTML;
 
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.id = "day" + addedWeekdays;
-        checkbox.dataset.url = url;
+    if (weekdayCount === 10) break;
+  }
+}
 
-        const label = document.createElement("a");
-        label.href = url;
-        label.target = "_blank";
-        label.innerText = " " + dateString;
-        label.style.marginLeft = "6px";
+// ----------------------------
+// Open all checked links
+// ----------------------------
+function openChecked() {
+  const boxes = document.querySelectorAll("input[type=checkbox]:checked");
+  boxes.forEach(b => window.open(b.dataset.url, "_blank"));
+}
 
-        const line = document.createElement("div");
-        line.className = "date-line";
-        line.appendChild(checkbox);
-        line.appendChild(label);
-
-        const holidayName = getHolidayName(dateObj);
-        if (holidayName) {
-          const holidayLabel = document.createElement("span");
-          holidayLabel.className = "holiday";
-          holidayLabel.innerText = " (" + holidayName + ")";
-          line.appendChild(holidayLabel);
-        }
-
-        if (addedWeekdays < WEEKDAYS_PER_CONTAINER) {
-          week1Container.appendChild(line);
-        } else {
-          week2Container.appendChild(line);
-        }
-
-        addedWeekdays++;
-      }
-      i++;
-    }
-
-    document.getElementById("openButton").addEventListener("click", () => {
-      const checkboxes = document.querySelectorAll("input[type='checkbox']");
-      checkboxes.forEach(cb => {
-        if (cb.checked) {
-          window.open(cb.dataset.url, "_blank");
-        }
-      });
-    });
-
-
-
-    
-  </script>
+generatePayPeriodDays();
+</script>
 
 </body>
 </html>
