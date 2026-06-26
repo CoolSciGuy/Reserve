@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Next Pay Period Booking Links - updated 06/2026</title>
+  <title>Next Pay Period Booking Links</title>
   <style>
     .week-container {
       margin-bottom: 20px;
@@ -35,11 +35,6 @@
     }
     .floor-option {
       margin-right: 14px;
-    }
-    .floor-badge {
-      margin-left: 6px;
-      color: #555;
-      font-style: italic;
     }
   </style>
 </head>
@@ -259,17 +254,6 @@
       return floor == null ? null : FLOOR_TO_FL[floor];
     }
 
-    // Badge helpers
-    function ordinal(n) {
-      const s = ["th","st","nd","rd"], v = n % 100;
-      return n + (s[(v - 20) % 10] || s[v] || s[0]);
-    }
-    function getFloorBadgeText() {
-      return isAllFloorsSelected()
-        ? " (All floors)"
-        : " (" + ordinal(getSelectedFloor()) + " floor)";
-    }
-
     // Build URL to match your examples exactly
     function buildLink(dateObj) {
       const year = dateObj.getFullYear();
@@ -355,11 +339,6 @@
           line.appendChild(checkbox);
           line.appendChild(label);
 
-          const floorBadge = document.createElement("span");
-          floorBadge.className = "floor-badge";
-          floorBadge.innerText = getFloorBadgeText();
-          line.appendChild(floorBadge);
-
           const holidayName = getHolidayName(dateObj);
           if (holidayName) {
             const span = document.createElement("span");
@@ -378,7 +357,7 @@
     addWeek(week1Container, week1Start);
     addWeek(week2Container, week2Start);
 
-    // Refresh links and badges when floor choice changes
+    // Refresh links when floor choice changes
     function refreshLinksForSelectedFloor() {
       const anchors = document.querySelectorAll(".date-line a[data-date]");
       anchors.forEach(a => {
@@ -386,17 +365,10 @@
         a.href = buildLink(date);
       });
     }
-    function refreshFloorBadges() {
-      const text = getFloorBadgeText();
-      document.querySelectorAll(".floor-badge").forEach(el => {
-        el.innerText = text;
-      });
-    }
 
     document.querySelectorAll('input[name="floorChoice"]').forEach(radio => {
       radio.addEventListener("change", () => {
         refreshLinksForSelectedFloor();
-        refreshFloorBadges();
       });
     });
 
