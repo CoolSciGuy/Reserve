@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Agile Reserve</title>
+  <title>Next Pay Period Booking Links</title>
   <style>
     .week-container {
       margin-bottom: 20px;
@@ -16,19 +16,30 @@
     .date-line {
       margin: 4px 0;
     }
+    .holiday {
+      font-weight: bold;
+      color: red;
+      margin-left: 6px;
+    }
   </style>
 </head>
 <body>
 
-  <!-- Login link -->
   <h3>
-    <a href="http://reserve.ferc.gov/" target="_blank">
-      Login first
+   
+     <a href="https://login.agilquest.com/home" target="_blank">
+      First login here
     </a>
   </h3>
 
-  <h2>Select Dates for NEXT Pay Period (Weekdays Only)</h2>
-  <p>(Automatically generated from today's date)</p>
+  <h3>
+    <a href="http://reserve.ferc.gov/" target="_blank">
+     or here
+    </a>
+  </h3>
+
+  
+  <h2>Select Dates for NEXT Pay Period </h2>
 
   <div id="week1" class="week-container">
     <div class="week-title">Week 1</div>
@@ -44,112 +55,232 @@
     const startHour = 9;
     const endHour = 17;
     const baseURL = "https://login.agilquest.com/availsearch/list/byassets";
-    const TOTAL_WEEKDAYS = 10; // total weekdays in next pay period
-    const WEEKDAYS_PER_CONTAINER = 5;
+    const WEEKDAYS_PER_WEEK = 5;
 
-    function buildLink(dateObj) {
-      const year = dateObj.getFullYear();
-      const month = dateObj.getMonth() + 1;
-      const day = dateObj.getDate();
+    // Pre-built pay period JSON (shortened example, add all periods through 2030)
+    const payPeriodJSON = [
 
-      const params = new URLSearchParams({
-        attrs: JSON.stringify({ bools: [], strings: [], numberRels: {}, dept: null }),
-        category: 2,
-        cty: "null",
-        end: JSON.stringify({
-          year: year,
-          month: month,
-          dayOfMonth: day,
-          hour: endHour,
-          minute: 0,
-          tzIdValue: "America/New_York",
-          discriminator: "AqDate"
-        }),
-        fl: 6,
-        fls: "[]",
-        loc: JSON.stringify({
-          sysidVenue: 1,
-          sysidVenues: [],
-          tzIdValue: "America/New_York"
-        }),
-        rType: 1,
-        rule: JSON.stringify({ flags: { isPattern: false } }),
-        start: JSON.stringify({
-          discriminator: "AqDate",
-          dayOfMonth: day,
-          month: month,
-          year: year,
-          hour: startHour,
-          minute: 0,
-          tzIdValue: "America/New_York"
-        }),
-        ts: Date.now(),
-        types: "[74,13]"
-      });
+  {"start":"2025-12-01","end":"2025-12-14"},
+  {"start":"2025-12-15","end":"2025-12-28"},
+  {"start":"2025-12-29","end":"2026-01-11"},
+  {"start":"2026-01-12","end":"2026-01-25"},
+  {"start":"2026-01-26","end":"2026-02-08"},
+  {"start":"2026-02-09","end":"2026-02-22"},
+  {"start":"2026-02-23","end":"2026-03-08"},
+  {"start":"2026-03-09","end":"2026-03-22"},
+  {"start":"2026-03-23","end":"2026-04-05"},
+  {"start":"2026-04-06","end":"2026-04-19"},
+  {"start":"2026-04-20","end":"2026-05-03"},
+  {"start":"2026-05-04","end":"2026-05-17"},
+  {"start":"2026-05-18","end":"2026-05-31"},
+  {"start":"2026-06-01","end":"2026-06-14"},
+  {"start":"2026-06-15","end":"2026-06-28"},
+  {"start":"2026-06-29","end":"2026-07-12"},
+  {"start":"2026-07-13","end":"2026-07-26"},
+  {"start":"2026-07-27","end":"2026-08-09"},
+  {"start":"2026-08-10","end":"2026-08-23"},
+  {"start":"2026-08-24","end":"2026-09-06"},
+  {"start":"2026-09-07","end":"2026-09-20"},
+  {"start":"2026-09-21","end":"2026-10-04"},
+  {"start":"2026-10-05","end":"2026-10-18"},
+  {"start":"2026-10-19","end":"2026-11-01"},
+  {"start":"2026-11-02","end":"2026-11-15"},
+  {"start":"2026-11-16","end":"2026-11-29"},
+  {"start":"2026-11-30","end":"2026-12-13"},
+  {"start":"2026-12-14","end":"2026-12-27"},
+  {"start":"2026-12-28","end":"2027-01-10"},
+  {"start":"2027-01-11","end":"2027-01-24"},
+  {"start":"2027-01-25","end":"2027-02-07"},
+  {"start":"2027-02-08","end":"2027-02-21"},
+  {"start":"2027-02-22","end":"2027-03-07"},
+  {"start":"2027-03-08","end":"2027-03-21"},
+  {"start":"2027-03-22","end":"2027-04-04"},
+  {"start":"2027-04-05","end":"2027-04-18"},
+  {"start":"2027-04-19","end":"2027-05-02"},
+  {"start":"2027-05-03","end":"2027-05-16"},
+  {"start":"2027-05-17","end":"2027-05-30"},
+  {"start":"2027-05-31","end":"2027-06-13"},
+  {"start":"2027-06-14","end":"2027-06-27"},
+  {"start":"2027-06-28","end":"2027-07-11"},
+  {"start":"2027-07-12","end":"2027-07-25"},
+  {"start":"2027-07-26","end":"2027-08-08"},
+  {"start":"2027-08-09","end":"2027-08-22"},
+  {"start":"2027-08-23","end":"2027-09-05"},
+  {"start":"2027-09-06","end":"2027-09-19"},
+  {"start":"2027-09-20","end":"2027-10-03"},
+  {"start":"2027-10-04","end":"2027-10-17"},
+  {"start":"2027-10-18","end":"2027-10-31"},
+  {"start":"2027-11-01","end":"2027-11-14"},
+  {"start":"2027-11-15","end":"2027-11-28"},
+  {"start":"2027-11-29","end":"2027-12-12"},
+  {"start":"2027-12-13","end":"2027-12-26"},
+  {"start":"2027-12-27","end":"2028-01-09"},
+  {"start":"2028-01-10","end":"2028-01-23"},
+  {"start":"2028-01-24","end":"2028-02-06"},
+  {"start":"2028-02-07","end":"2028-02-20"},
+  {"start":"2028-02-21","end":"2028-03-05"},
+  {"start":"2028-03-06","end":"2028-03-19"},
+  {"start":"2028-03-20","end":"2028-04-02"},
+  {"start":"2028-04-03","end":"2028-04-16"},
+  {"start":"2028-04-17","end":"2028-04-30"},
+  {"start":"2028-05-01","end":"2028-05-14"},
+  {"start":"2028-05-15","end":"2028-05-28"},
+  {"start":"2028-05-29","end":"2028-06-11"},
+  {"start":"2028-06-12","end":"2028-06-25"},
+  {"start":"2028-06-26","end":"2028-07-09"},
+  {"start":"2028-07-10","end":"2028-07-23"},
+  {"start":"2028-07-24","end":"2028-08-06"},
+  {"start":"2028-08-07","end":"2028-08-20"},
+  {"start":"2028-08-21","end":"2028-09-03"},
+  {"start":"2028-09-04","end":"2028-09-17"},
+  {"start":"2028-09-18","end":"2028-10-01"},
+  {"start":"2028-10-02","end":"2028-10-15"},
+  {"start":"2028-10-16","end":"2028-10-29"},
+  {"start":"2028-10-30","end":"2028-11-12"},
+  {"start":"2028-11-13","end":"2028-11-26"},
+  {"start":"2028-11-27","end":"2028-12-10"},
+  {"start":"2028-12-11","end":"2028-12-24"},
+  {"start":"2028-12-25","end":"2029-01-07"}
+];
+    
+    const payPeriods = payPeriodJSON.map(pp => ({
+      start: new Date(pp.start),
+      end: new Date(pp.end)
+    }));
 
-      return baseURL + "?" + params.toString();
+    // Federal holidays 2025–2030
+    const federalHolidays = {
+      "01-01-2025":"New Year's Day","01-20-2025":"Martin Luther King Jr. Day","02-17-2025":"Presidents' Day",
+      "05-26-2025":"Memorial Day","06-19-2025":"Juneteenth","07-04-2025":"Independence Day",
+      "09-01-2025":"Labor Day","10-13-2025":"Columbus Day","11-11-2025":"Veterans Day",
+      "11-27-2025":"Thanksgiving Day","12-25-2025":"Christmas Day",
+      "01-01-2026":"New Year's Day","01-19-2026":"Martin Luther King Jr. Day","02-16-2026":"Presidents' Day",
+      "05-25-2026":"Memorial Day","06-19-2026":"Juneteenth","07-03-2026":"Independence Day (Observed)",
+      "09-07-2026":"Labor Day","10-12-2026":"Columbus Day","11-11-2026":"Veterans Day",
+      "11-26-2026":"Thanksgiving Day","12-25-2026":"Christmas Day",
+      "01-01-2027":"New Year's Day","01-18-2027":"Martin Luther King Jr. Day","02-15-2027":"Presidents' Day",
+      "05-31-2027":"Memorial Day","06-18-2027":"Juneteenth (Observed)","07-05-2027":"Independence Day (Observed)",
+      "09-06-2027":"Labor Day","10-11-2027":"Columbus Day","11-11-2027":"Veterans Day",
+      "11-25-2027":"Thanksgiving Day","12-24-2027":"Christmas Day (Observed)",
+      "01-01-2028":"New Year's Day","01-17-2028":"Martin Luther King Jr. Day","02-21-2028":"Presidents' Day",
+      "05-29-2028":"Memorial Day","06-19-2028":"Juneteenth","07-04-2028":"Independence Day",
+      "09-04-2028":"Labor Day","10-09-2028":"Columbus Day","11-10-2028":"Veterans Day (Observed)",
+      "11-23-2028":"Thanksgiving Day","12-25-2028":"Christmas Day",
+      "01-01-2029":"New Year's Day","01-15-2029":"Martin Luther King Jr. Day","02-19-2029":"Presidents' Day",
+      "05-28-2029":"Memorial Day","06-19-2029":"Juneteenth (Observed)","07-04-2029":"Independence Day",
+      "09-03-2029":"Labor Day","10-08-2029":"Columbus Day","11-12-2029":"Veterans Day (Observed)",
+      "11-22-2029":"Thanksgiving Day","12-25-2029":"Christmas Day",
+      "01-01-2030":"New Year's Day","01-21-2030":"Martin Luther King Jr. Day","02-18-2030":"Presidents' Day",
+      "05-27-2030":"Memorial Day","06-19-2030":"Juneteenth","07-04-2030":"Independence Day",
+      "09-02-2030":"Labor Day","10-14-2030":"Columbus Day","11-11-2030":"Veterans Day",
+      "11-28-2030":"Thanksgiving Day","12-25-2030":"Christmas Day"
+     
+    };
+
+    // Find next pay period
+    const now = new Date();
+    let nextPayPeriod = payPeriods.find((pp, i) => {
+      if(now >= pp.start && now <= pp.end){
+        return true;
+      }
+      return false;
+    });
+
+    if(nextPayPeriod){
+      const currentIndex = payPeriods.indexOf(nextPayPeriod);
+      if(currentIndex+1 < payPeriods.length){
+        nextPayPeriod = payPeriods[currentIndex+1];
+      }
+    }
+    if(!nextPayPeriod) nextPayPeriod = payPeriods[payPeriods.length-1];
+
+    // --- Find Week 1 and Week 2 Mondays ---
+    function getMonday(d){
+      const day = d.getDay();
+      const diff = (1 + 7 - day) % 7;
+      const monday = new Date(d);
+      monday.setDate(d.getDate() + diff);
+      return monday;
     }
 
-    const today = new Date();
-    const nextPeriodStart = new Date(today);
-    nextPeriodStart.setDate(today.getDate() + 14); // next pay period starts 14 days after today
+    const week1Start = getMonday(nextPayPeriod.start);
+    const week2Start = new Date(week1Start);
+    week2Start.setDate(week1Start.getDate() + 7);
 
     const week1Container = document.getElementById("week1");
     const week2Container = document.getElementById("week2");
 
-    let addedWeekdays = 0;
-    let i = 0;
-
-    while (addedWeekdays < TOTAL_WEEKDAYS) {
-      const dateObj = new Date(nextPeriodStart);
-      dateObj.setDate(nextPeriodStart.getDate() + i);
-
-      const dayOfWeek = dateObj.getDay(); // 0 = Sunday, 6 = Saturday
-      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-        const url = buildLink(dateObj);
-
-        const dateString = dateObj.toLocaleDateString("en-US", {
-          weekday: "short",
-          month: "long",
-          day: "numeric",
-          year: "numeric"
-        });
-
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.id = "day" + addedWeekdays;
-        checkbox.dataset.url = url;
-
-        const label = document.createElement("a");
-        label.href = url;
-        label.target = "_blank";
-        label.innerText = " " + dateString;
-        label.style.marginLeft = "6px";
-
-        const line = document.createElement("div");
-        line.className = "date-line";
-        line.appendChild(checkbox);
-        line.appendChild(label);
-
-        // Week 1 = first 5 weekdays, Week 2 = next 5 weekdays
-        if (addedWeekdays < WEEKDAYS_PER_CONTAINER) {
-          week1Container.appendChild(line);
-        } else {
-          week2Container.appendChild(line);
-        }
-
-        addedWeekdays++;
-      }
-      i++;
+    function buildLink(dateObj){
+      const year = dateObj.getFullYear();
+      const month = dateObj.getMonth()+1;
+      const day = dateObj.getDate();
+      const params = new URLSearchParams({
+        attrs: JSON.stringify({ bools: [], strings: [], numberRels: {}, dept:null }),
+        category: 2,
+        cty: "null",
+        end: JSON.stringify({year, month, dayOfMonth:day, hour:endHour, minute:0, tzIdValue:"America/New_York", discriminator:"AqDate"}),
+        fl:6, fls:"[]",
+        loc: JSON.stringify({sysidVenue:1, sysidVenues:[], tzIdValue:"America/New_York"}),
+        rType:1,
+        rule: JSON.stringify({flags:{isPattern:false}}),
+        start: JSON.stringify({discriminator:"AqDate", dayOfMonth:day, month, year, hour:startHour, minute:0, tzIdValue:"America/New_York"}),
+        ts: Date.now(),
+        types:"[74,13]"
+      });
+      return baseURL + "?" + params.toString();
     }
 
-    // Submit button opens all selected URLs
-    document.getElementById("openButton").addEventListener("click", () => {
-      const checkboxes = document.querySelectorAll("input[type='checkbox']");
-      checkboxes.forEach(cb => {
-        if (cb.checked) {
-          window.open(cb.dataset.url, "_blank");
+    function getHolidayName(dateObj){
+      const year = dateObj.getFullYear();
+      const mm = String(dateObj.getMonth()+1).padStart(2,"0");
+      const dd = String(dateObj.getDate()).padStart(2,"0");
+      const key = `${mm}-${dd}-${year}`;
+      return federalHolidays[key] || null;
+    }
+
+    function addWeek(container, startDate){
+      let addedDays = 0;
+      let i = 0;
+      while(addedDays < WEEKDAYS_PER_WEEK){
+        const dateObj = new Date(startDate);
+        dateObj.setDate(startDate.getDate() + i);
+        const dow = dateObj.getDay();
+        if(dow !== 0 && dow !== 6){ // skip weekends
+          const url = buildLink(dateObj);
+          const dateString = dateObj.toLocaleDateString("en-US",{weekday:"short", month:"long", day:"numeric", year:"numeric"});
+          const checkbox = document.createElement("input");
+          checkbox.type="checkbox";
+          checkbox.dataset.url = url;
+          const label = document.createElement("a");
+          label.href = url;
+          label.target="_blank";
+          label.innerText = " "+dateString;
+          label.style.marginLeft="6px";
+          const line = document.createElement("div");
+          line.className="date-line";
+          line.appendChild(checkbox);
+          line.appendChild(label);
+          const holidayName = getHolidayName(dateObj);
+          if(holidayName){
+            const span = document.createElement("span");
+            span.className="holiday";
+            span.innerText=" ("+holidayName+")";
+            line.appendChild(span);
+          }
+          container.appendChild(line);
+          addedDays++;
         }
+        i++;
+      }
+    }
+
+    addWeek(week1Container, week1Start);
+    addWeek(week2Container, week2Start);
+
+    document.getElementById("openButton").addEventListener("click", ()=>{
+      const checkboxes = document.querySelectorAll("input[type='checkbox']");
+      checkboxes.forEach(cb=>{
+        if(cb.checked) window.open(cb.dataset.url,"_blank");
       });
     });
   </script>
