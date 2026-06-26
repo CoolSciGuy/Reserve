@@ -210,80 +210,147 @@
     const week1Container = document.getElementById("week1");
     const week2Container = document.getElementById("week2");
 
-    function buildLink(dateObj){
-      const year = dateObj.getFullYear();
-      const month = dateObj.getMonth()+1;
-      const day = dateObj.getDate();
-      const params = new URLSearchParams({
-        attrs: JSON.stringify({ bools: [], strings: [], numberRels: {}, dept:null }),
-        category: 2,
-        cty: "null",
-        end: JSON.stringify({year, month, dayOfMonth:day, hour:endHour, minute:0, tzIdValue:"America/New_York", discriminator:"AqDate"}),
-        fl:6, fls:"[]",
-        loc: JSON.stringify({sysidVenue:1, sysidVenues:[], tzIdValue:"America/New_York"}),
-        rType:1,
-        rule: JSON.stringify({flags:{isPattern:false}}),
-        start: JSON.stringify({discriminator:"AqDate", dayOfMonth:day, month, year, hour:startHour, minute:0, tzIdValue:"America/New_York"}),
-        ts: Date.now(),
-        types:"[74,13]"
+    // Helper: returns currently selected floor (7..10)
+function getSelectedFloor() {
+  return parseInt(document.getElementById("floorSelect").value, 10);
+}
+
+// Helper: converts human floor number (7..10) to zero-based index used by the API
+// If your API is one-based, change this to: return selectedFloor;
+function getSelectedFloorIndex() {
+  const selectedFloor = getSelectedFloor(); // 7..10
+  return selectedFloor - 1; // zero-based => 7th floor -> 6
+}
+
+// UPDATED: buildLink now takes floorIndex explicitly
+function buildLink(dateObj, floorIndex) {
+  const year = dateObj.getFullYear();
+  const month = dateObj.getMonth() + 1;
+  const day = dateObj.getDate();
+
+  const params = new URLSearchParams({
+    attrs: JSON.stringify({ bools: [], strings: [], numberRels: {}, dept: null }),
+    category: 2,
+    cty: "null",
+    end: JSON.stringify({
+      year,
+      month,
+      dayOfMonth: day,
+      hour: endHour,
+      minute: 0,
+      tzIdValue: "America/New_York",
+      discriminator: "AqDate"
+    }),
+    // Use selected floor index here
+    fl: floorIndex,
+    fls: "[]",
+    loc: JSON.stringify({ sysidVenue: 1, sysidVenues: [], tzIdValue: "America/New_York" }),
+    rType: 1,
+    rule: JSON.stringify({ flags: { isPattern: false } }),
+    start: JSON.stringify({
+      discriminator: "AqDate",
+      dayOfMonth: day,
+      month,
+      year,
+      hour: startHour,
+      minute: 0,
+      tzIdValue: "America/New_York"
+    }),
+    ts: Date.now(),
+    types: "[74,13]"
+  });
+
+  return baseURL + "?" + params.toString();
+}
+
+// Keep this as-is
+function getHolidayName(dateObj) {
+  const year = dateObj.getFullYear();
+  const mm = String(dateObj.getMonth() + 1).padStart(2, "0");
+  const dd = String(dateObj.getDate()).padStart(2, "0");
+  const key = `${mm}-${dd}-${year}`;
+  return federalHolidays[key] || null;
+}
+
+// UPDATED: addWeek stores the date on elements, and builds link using current floor
+function addWeek(container, startDate) {
+  let addedDays = 0;
+  let i = 0;
+
+  while (addedDays < WEEKDAYS_PER_WEEK) {
+    const dateObj = new Date(startDate);
+    dateObj.setDate(startDate.getDate() + i);
+    const dow = dateObj.getDay();
+
+    if (dow !== 0 && dow !== 6) { // skip weekends
+      const floorIndex = getSelectedFloorIndex();
+      const url = buildLink(dateObj, floorIndex);
+      const dateString = dateObj.toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "long",
+        day: "numeric",
+        year: "numeric"
       });
-      return baseURL + "?" + params.toString();
-    }
 
-    function getHolidayName(dateObj){
-      const year = dateObj.getFullYear();
-      const mm = String(dateObj.getMonth()+1).padStart(2,"0");
-      const dd = String(dateObj.getDate()).padStart(2,"0");
-      const key = `${mm}-${dd}-${year}`;
-      return federalHolidays[key] || null;
-    }
+      // Checkbox: store the ISO date so we can rebuild URL later
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.dataset.date = dateObj.toISOString();
 
-    function addWeek(container, startDate){
-      let addedDays = 0;
-      let i = 0;
-      while(addedDays < WEEKDAYS_PER_WEEK){
-        const dateObj = new Date(startDate);
-        dateObj.setDate(startDate.getDate() + i);
-        const dow = dateObj.getDay();
-        if(dow !== 0 && dow !== 6){ // skip weekends
-          const url = buildLink(dateObj);
-          const dateString = dateObj.toLocaleDateString("en-US",{weekday:"short", month:"long", day:"numeric", year:"numeric"});
-          const checkbox = document.createElement("input");
-          checkbox.type="checkbox";
-          checkbox.dataset.url = url;
-          const label = document.createElement("a");
-          label.href = url;
-          label.target="_blank";
-          label.innerText = " "+dateString;
-          label.style.marginLeft="6px";
-          const line = document.createElement("div");
-          line.className="date-line";
-          line.appendChild(checkbox);
-          line.appendChild(label);
-          const holidayName = getHolidayName(dateObj);
-          if(holidayName){
-            const span = document.createElement("span");
-            span.className="holiday";
-            span.innerText=" ("+holidayName+")";
-            line.appendChild(span);
-          }
-          container.appendChild(line);
-          addedDays++;
-        }
-        i++;
+      // Label link: also store ISO date for refresh
+      const label = document.createElement("a");
+      label.href = url;
+      label.target = "_blank";
+      label.innerText = " " + dateString;
+      label.style.marginLeft = "6px";
+      label.dataset.date = dateObj.toISOString();
+
+      const line = document.createElement("div");
+      line.className = "date-line";
+      line.appendChild(checkbox);
+      line.appendChild(label);
+
+      const holidayName = getHolidayName(dateObj);
+      if (holidayName) {
+        const span = document.createElement("span");
+        span.className = "holiday";
+        span.innerText = " (" + holidayName + ")";
+        line.appendChild(span);
       }
+
+      container.appendChild(line);
+      addedDays++;
     }
 
-    addWeek(week1Container, week1Start);
-    addWeek(week2Container, week2Start);
+    i++;
+  }
+}
 
-    document.getElementById("openButton").addEventListener("click", ()=>{
-      const checkboxes = document.querySelectorAll("input[type='checkbox']");
-      checkboxes.forEach(cb=>{
-        if(cb.checked) window.open(cb.dataset.url,"_blank");
-      });
-    });
-  </script>
+// Call your existing week builders
+addWeek(week1Container, week1Start);
+addWeek(week2Container, week2Start);
 
-</body>
-</html>
+// NEW: Refresh all link hrefs when the floor selection changes
+function refreshLinksForSelectedFloor() {
+  const floorIndex = getSelectedFloorIndex();
+  const anchors = document.querySelectorAll(".date-line a[data-date]");
+  anchors.forEach(a => {
+    const date = new Date(a.dataset.date);
+    a.href = buildLink(date, floorIndex);
+  });
+}
+
+// When user changes the floor, update links to reflect the new selection
+document.getElementById("floorSelect").addEventListener("change", refreshLinksForSelectedFloor);
+
+// UPDATED: Build URL at click time to ensure we use the latest selected floor
+document.getElementById("openButton").addEventListener("click", () => {
+  const floorIndex = getSelectedFloorIndex();
+  const checkboxes = document.querySelectorAll("input[type='checkbox'][data-date]");
+  checkboxes.forEach(cb => {
+    if (cb.checked) {
+      const date = new Date(cb.dataset.date);
+      const url = buildLink(date, floorIndex); // rebuild with current floor
+      window.open(url, "_blank");
+    }
+  });
