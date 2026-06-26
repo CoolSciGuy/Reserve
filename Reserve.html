@@ -37,20 +37,16 @@
 <body>
 
   <h3>
-    <a href="https://login.agilquest.com/home" target="_blank">
-      First login here
-    </a>
+    <a href="https://login.agilquest.com/home" target="_blank">First login here</a>
   </h3>
 
   <h3>
-    <a href="http://reserve.ferc.gov/" target="_blank">
-      or here
-    </a>
+    <a href="http://reserve.ferc.gov/" target="_blank">or here</a>
   </h3>
 
   <h2>Select Dates for NEXT Pay Period</h2>
 
-  <!-- Floor selector 7..10 -->
+  <!-- Floor selector 7..10 + All Floors -->
   <div class="controls">
     <label for="floorSelect"><strong>Floor:</strong></label>
     <select id="floorSelect">
@@ -58,6 +54,7 @@
       <option value="8">8th Floor</option>
       <option value="9">9th Floor</option>
       <option value="10">10th Floor</option>
+      <option value="all">All Floors</option>
     </select>
   </div>
 
@@ -229,14 +226,22 @@
     const week1Container = document.getElementById("week1");
     const week2Container = document.getElementById("week2");
 
-    // Helpers for floor selection
-    function getSelectedFloor() {
-      return parseInt(document.getElementById("floorSelect").value, 10); // 7..10
+    // --- Floor selection helpers ---
+    function isAllFloorsSelected() {
+      return document.getElementById("floorSelect").value === "all";
     }
-    // Convert to zero-based index for API (7th floor -> 6)
-    // If your API is one-based, change this to: return getSelectedFloor();
+    function getSelectedFloor() {
+      const v = document.getElementById("floorSelect").value;
+      return v === "all" ? null : parseInt(v, 10); // 7..10 or null
+    }
+    // Zero-based index for API (7th -> 6). If your API is one-based, change to: return getSelectedFloor();
     function getSelectedFloorIndex() {
-      return getSelectedFloor() - 1;
+      const f = getSelectedFloor();
+      return f == null ? null : (f - 1);
+    }
+    // Indices for floors 7..10 (zero-based). If one-based API, change to: return [7,8,9,10];
+    function getAllFloorsIndices() {
+      return [6,7,8,9];
     }
     // Ordinal suffix helper (7 -> 7th, 8 -> 8th, ...)
     function ordinal(n) {
@@ -244,21 +249,29 @@
       return n + (s[(v - 20) % 10] || s[v] || s[0]);
     }
     function getFloorBadgeText() {
-      return " (" + ordinal(getSelectedFloor()) + " floor)";
+      return isAllFloorsSelected()
+        ? " (All floors)"
+        : " (" + ordinal(getSelectedFloor()) + " floor)";
     }
 
-    // buildLink accepts floorIndex
-    function buildLink(dateObj, floorIndex){
+    // Build URL with either single floor or all floors
+    function buildLink(dateObj, opts){
+      const { floorIndex, floorsList } = opts; // floorIndex: number|null, floorsList: number[]|[]
       const year = dateObj.getFullYear();
       const month = dateObj.getMonth()+1;
       const day = dateObj.getDate();
+
+      // If all floors: set fl to first in list for compatibility, and fls to the full list
+      const useFloorsList = Array.isArray(floorsList) && floorsList.length > 0;
+      const effectiveFl = useFloorsList ? floorsList[0] : floorIndex;
+
       const params = new URLSearchParams({
         attrs: JSON.stringify({ bools: [], strings: [], numberRels: {}, dept:null }),
         category: 2,
         cty: "null",
         end: JSON.stringify({year, month, dayOfMonth:day, hour:endHour, minute:0, tzIdValue:"America/New_York", discriminator:"AqDate"}),
-        fl: floorIndex,            // use selected floor index
-        fls: "[]",
+        fl: effectiveFl,
+        fls: JSON.stringify(useFloorsList ? floorsList : []),
         loc: JSON.stringify({sysidVenue:1, sysidVenues:[], tzIdValue:"America/New_York"}),
         rType:1,
         rule: JSON.stringify({flags:{isPattern:false}}),
@@ -286,8 +299,11 @@
         dateObj.setDate(startDate.getDate() + i);
         const dow = dateObj.getDay();
         if(dow !== 0 && dow !== 6){ // skip weekends
-          const floorIndex = getSelectedFloorIndex();
-          const url = buildLink(dateObj, floorIndex);
+          const opts = isAllFloorsSelected()
+            ? { floorIndex: null, floorsList: getAllFloorsIndices() }
+            : { floorIndex: getSelectedFloorIndex(), floorsList: [] };
+
+          const url = buildLink(dateObj, opts);
           const dateString = dateObj.toLocaleDateString("en-US",{weekday:"short", month:"long", day:"numeric", year:"numeric"});
 
           const checkbox = document.createElement("input");
@@ -306,7 +322,7 @@
           line.appendChild(checkbox);
           line.appendChild(label);
 
-          // NEW: floor badge that updates when floor selection changes
+          // Floor badge
           const floorBadge = document.createElement("span");
           floorBadge.className = "floor-badge";
           floorBadge.innerText = getFloorBadgeText();
@@ -332,11 +348,13 @@
 
     // Refresh all link hrefs when the floor selection changes
     function refreshLinksForSelectedFloor() {
-      const floorIndex = getSelectedFloorIndex();
       const anchors = document.querySelectorAll(".date-line a[data-date]");
       anchors.forEach(a => {
         const date = new Date(a.dataset.date);
-        a.href = buildLink(date, floorIndex);
+        const opts = isAllFloorsSelected()
+          ? { floorIndex: null, floorsList: getAllFloorsIndices() }
+          : { floorIndex: getSelectedFloorIndex(), floorsList: [] };
+        a.href = buildLink(date, opts);
       });
     }
     // Refresh all floor badges text when the floor changes
@@ -355,12 +373,15 @@
 
     // Build URL at click time using current floor selection
     document.getElementById("openButton").addEventListener("click", () => {
-      const floorIndex = getSelectedFloorIndex();
       const checkboxes = document.querySelectorAll("input[type='checkbox'][data-date]");
+      const opts = isAllFloorsSelected()
+        ? { floorIndex: null, floorsList: getAllFloorsIndices() }
+        : { floorIndex: getSelectedFloorIndex(), floorsList: [] };
+
       checkboxes.forEach(cb=>{
         if(cb.checked) {
           const date = new Date(cb.dataset.date);
-          const url = buildLink(date, floorIndex);
+          const url = buildLink(date, opts);
           window.open(url,"_blank");
         }
       });
