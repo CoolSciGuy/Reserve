@@ -37,11 +37,15 @@
 <body>
 
   <h3>
-    <a href="https://login.agilquest.com/home" target="_blank">First login here</a>
+    <a href="https://login.agilquest.com/home" target="_blank">
+      First login here
+    </a>
   </h3>
 
   <h3>
-    <a href="http://reserve.ferc.gov/" target="_blank">or here</a>
+    <a href="http://reserve.ferc.gov/" target="_blank">
+      or here
+    </a>
   </h3>
 
   <h2>Select Dates for NEXT Pay Period</h2>
@@ -234,15 +238,21 @@
       const v = document.getElementById("floorSelect").value;
       return v === "all" ? null : parseInt(v, 10); // 7..10 or null
     }
-    // Zero-based index for API (7th -> 6). If your API is one-based, change to: return getSelectedFloor();
-    function getSelectedFloorIndex() {
-      const f = getSelectedFloor();
-      return f == null ? null : (f - 1);
+
+    // Explicit mapping from floor number -> fl param (based on your system)
+    const FLOOR_TO_FL = { 7: 6, 8: 5, 9: 4, 10: 3 };
+
+    // Get single-floor fl value
+    function getSelectedFlValue() {
+      const floor = getSelectedFloor();
+      return floor == null ? null : FLOOR_TO_FL[floor];
     }
-    // Indices for floors 7..10 (zero-based). If one-based API, change to: return [7,8,9,10];
-    function getAllFloorsIndices() {
-      return [6,7,8,9];
+
+    // All floors (fls) list, in the same mapping order
+    function getAllFloorsFlValues() {
+      return [FLOOR_TO_FL[7], FLOOR_TO_FL[8], FLOOR_TO_FL[9], FLOOR_TO_FL[10]]; // [6,5,4,3]
     }
+
     // Ordinal suffix helper (7 -> 7th, 8 -> 8th, ...)
     function ordinal(n) {
       const s = ["th","st","nd","rd"], v = n % 100;
@@ -256,28 +266,43 @@
 
     // Build URL with either single floor or all floors
     function buildLink(dateObj, opts){
-      const { floorIndex, floorsList } = opts; // floorIndex: number|null, floorsList: number[]|[]
+      const { flValue, flsList } = opts; // flValue: number|null, flsList: number[]|[]
       const year = dateObj.getFullYear();
       const month = dateObj.getMonth()+1;
       const day = dateObj.getDate();
 
-      // If all floors: set fl to first in list for compatibility, and fls to the full list
-      const useFloorsList = Array.isArray(floorsList) && floorsList.length > 0;
-      const effectiveFl = useFloorsList ? floorsList[0] : floorIndex;
+      const useFloorsList = Array.isArray(flsList) && flsList.length > 0;
+      const effectiveFl = useFloorsList ? flsList[0] : flValue;
 
       const params = new URLSearchParams({
-        attrs: JSON.stringify({ bools: [], strings: [], numberRels: {}, dept:null }),
+        attrs: JSON.stringify({ bools: [], strings: [], numberRels: {}, dept: null }),
         category: 2,
-        cty: "null",
-        end: JSON.stringify({year, month, dayOfMonth:day, hour:endHour, minute:0, tzIdValue:"America/New_York", discriminator:"AqDate"}),
+        cty: null, // null is fine; will serialize to 'null'
+        end: JSON.stringify({
+          year,
+          month,
+          dayOfMonth: day,
+          hour: endHour,
+          minute: 0,
+          tzIdValue: "America/New_York",
+          discriminator: "AqDate"
+        }),
         fl: effectiveFl,
-        fls: JSON.stringify(useFloorsList ? floorsList : []),
-        loc: JSON.stringify({sysidVenue:1, sysidVenues:[], tzIdValue:"America/New_York"}),
-        rType:1,
-        rule: JSON.stringify({flags:{isPattern:false}}),
-        start: JSON.stringify({discriminator:"AqDate", dayOfMonth:day, month, year, hour:startHour, minute:0, tzIdValue:"America/New_York"}),
+        fls: JSON.stringify(useFloorsList ? flsList : []),
+        loc: JSON.stringify({ sysidVenue: 1, sysidVenues: [], tzIdValue: "America/New_York" }),
+        rType: 1,
+        rule: JSON.stringify({ flags: { isPattern: false } }),
+        start: JSON.stringify({
+          discriminator: "AqDate",
+          dayOfMonth: day,
+          month,
+          year,
+          hour: startHour,
+          minute: 0,
+          tzIdValue: "America/New_York"
+        }),
         ts: Date.now(),
-        types:"[74,13]"
+        types: JSON.stringify([74, 13])
       });
       return baseURL + "?" + params.toString();
     }
@@ -300,11 +325,13 @@
         const dow = dateObj.getDay();
         if(dow !== 0 && dow !== 6){ // skip weekends
           const opts = isAllFloorsSelected()
-            ? { floorIndex: null, floorsList: getAllFloorsIndices() }
-            : { floorIndex: getSelectedFloorIndex(), floorsList: [] };
+            ? { flValue: null, flsList: getAllFloorsFlValues() }
+            : { flValue: getSelectedFlValue(), flsList: [] };
 
           const url = buildLink(dateObj, opts);
-          const dateString = dateObj.toLocaleDateString("en-US",{weekday:"short", month:"long", day:"numeric", year:"numeric"});
+          const dateString = dateObj.toLocaleDateString("en-US", {
+            weekday:"short", month:"long", day:"numeric", year:"numeric"
+          });
 
           const checkbox = document.createElement("input");
           checkbox.type = "checkbox";
@@ -352,8 +379,8 @@
       anchors.forEach(a => {
         const date = new Date(a.dataset.date);
         const opts = isAllFloorsSelected()
-          ? { floorIndex: null, floorsList: getAllFloorsIndices() }
-          : { floorIndex: getSelectedFloorIndex(), floorsList: [] };
+          ? { flValue: null, flsList: getAllFloorsFlValues() }
+          : { flValue: getSelectedFlValue(), flsList: [] };
         a.href = buildLink(date, opts);
       });
     }
@@ -375,8 +402,8 @@
     document.getElementById("openButton").addEventListener("click", () => {
       const checkboxes = document.querySelectorAll("input[type='checkbox'][data-date]");
       const opts = isAllFloorsSelected()
-        ? { floorIndex: null, floorsList: getAllFloorsIndices() }
-        : { floorIndex: getSelectedFloorIndex(), floorsList: [] };
+        ? { flValue: null, flsList: getAllFloorsFlValues() }
+        : { flValue: getSelectedFlValue(), flsList: [] };
 
       checkboxes.forEach(cb=>{
         if(cb.checked) {
