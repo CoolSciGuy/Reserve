@@ -24,8 +24,17 @@
     .controls {
       margin: 10px 0 20px 0;
     }
-    .controls label {
-      margin-right: 8px;
+    .controls fieldset {
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 8px 12px;
+    }
+    .controls legend {
+      font-weight: bold;
+      padding: 0 6px;
+    }
+    .floor-option {
+      margin-right: 14px;
     }
     .floor-badge {
       margin-left: 6px;
@@ -37,29 +46,35 @@
 <body>
 
   <h3>
-    <a href="https://login.agilquest.com/home" target="_blank">
-      First login here
-    </a>
+    <a href="https://login.agilquest.com/home" target="_blank">First login here</a>
   </h3>
 
   <h3>
-    <a href="http://reserve.ferc.gov/" target="_blank">
-      or here
-    </a>
+    <a href="http://reserve.ferc.gov/" target="_blank">or here</a>
   </h3>
 
   <h2>Select Dates for NEXT Pay Period</h2>
 
-  <!-- Floor selector 7..10 + All Floors -->
+  <!-- Floor selection: radio buttons -->
   <div class="controls">
-    <label for="floorSelect"><strong>Floor:</strong></label>
-    <select id="floorSelect">
-      <option value="7" selected>7th Floor</option>
-      <option value="8">8th Floor</option>
-      <option value="9">9th Floor</option>
-      <option value="10">10th Floor</option>
-      <option value="all">All Floors</option>
-    </select>
+    <fieldset>
+      <legend>Choose Floor</legend>
+      <label class="floor-option">
+        <input type="radio" name="floorChoice" value="7" checked> 7th
+      </label>
+      <label class="floor-option">
+        <input type="radio" name="floorChoice" value="8"> 8th
+      </label>
+      <label class="floor-option">
+        <input type="radio" name="floorChoice" value="9"> 9th
+      </label>
+      <label class="floor-option">
+        <input type="radio" name="floorChoice" value="10"> 10th
+      </label>
+      <label class="floor-option">
+        <input type="radio" name="floorChoice" value="all"> All Floors
+      </label>
+    </fieldset>
   </div>
 
   <div id="week1" class="week-container">
@@ -78,92 +93,91 @@
     const baseURL = "https://login.agilquest.com/availsearch/list/byassets";
     const WEEKDAYS_PER_WEEK = 5;
 
-    // Pre-built pay period JSON (shortened example, add all periods through 2030)
+    // Pay period JSON (as provided)
     const payPeriodJSON = [
+      {"start":"2025-12-01","end":"2025-12-14"},
+      {"start":"2025-12-15","end":"2025-12-28"},
+      {"start":"2025-12-29","end":"2026-01-11"},
+      {"start":"2026-01-12","end":"2026-01-25"},
+      {"start":"2026-01-26","end":"2026-02-08"},
+      {"start":"2026-02-09","end":"2026-02-22"},
+      {"start":"2026-02-23","end":"2026-03-08"},
+      {"start":"2026-03-09","end":"2026-03-22"},
+      {"start":"2026-03-23","end":"2026-04-05"},
+      {"start":"2026-04-06","end":"2026-04-19"},
+      {"start":"2026-04-20","end":"2026-05-03"},
+      {"start":"2026-05-04","end":"2026-05-17"},
+      {"start":"2026-05-18","end":"2026-05-31"},
+      {"start":"2026-06-01","end":"2026-06-14"},
+      {"start":"2026-06-15","end":"2026-06-28"},
+      {"start":"2026-06-29","end":"2026-07-12"},
+      {"start":"2026-07-13","end":"2026-07-26"},
+      {"start":"2026-07-27","end":"2026-08-09"},
+      {"start":"2026-08-10","end":"2026-08-23"},
+      {"start":"2026-08-24","end":"2026-09-06"},
+      {"start":"2026-09-07","end":"2026-09-20"},
+      {"start":"2026-09-21","end":"2026-10-04"},
+      {"start":"2026-10-05","end":"2026-10-18"},
+      {"start":"2026-10-19","end":"2026-11-01"},
+      {"start":"2026-11-02","end":"2026-11-15"},
+      {"start":"2026-11-16","end":"2026-11-29"},
+      {"start":"2026-11-30","end":"2026-12-13"},
+      {"start":"2026-12-14","end":"2026-12-27"},
+      {"start":"2026-12-28","end":"2027-01-10"},
+      {"start":"2027-01-11","end":"2027-01-24"},
+      {"start":"2027-01-25","end":"2027-02-07"},
+      {"start":"2027-02-08","end":"2027-02-21"},
+      {"start":"2027-02-22","end":"2027-03-07"},
+      {"start":"2027-03-08","end":"2027-03-21"},
+      {"start":"2027-03-22","end":"2027-04-04"},
+      {"start":"2027-04-05","end":"2027-04-18"},
+      {"start":"2027-04-19","end":"2027-05-02"},
+      {"start":"2027-05-03","end":"2027-05-16"},
+      {"start":"2027-05-17","end":"2027-05-30"},
+      {"start":"2027-05-31","end":"2027-06-13"},
+      {"start":"2027-06-14","end":"2027-06-27"},
+      {"start":"2027-06-28","end":"2027-07-11"},
+      {"start":"2027-07-12","end":"2027-07-25"},
+      {"start":"2027-07-26","end":"2027-08-08"},
+      {"start":"2027-08-09","end":"2027-08-22"},
+      {"start":"2027-08-23","end":"2027-09-05"},
+      {"start":"2027-09-06","end":"2027-09-19"},
+      {"start":"2027-09-20","end":"2027-10-03"},
+      {"start":"2027-10-04","end":"2027-10-17"},
+      {"start":"2027-10-18","end":"2027-10-31"},
+      {"start":"2027-11-01","end":"2027-11-14"},
+      {"start":"2027-11-15","end":"2027-11-28"},
+      {"start":"2027-11-29","end":"2027-12-12"},
+      {"start":"2027-12-13","end":"2027-12-26"},
+      {"start":"2027-12-27","end":"2028-01-09"},
+      {"start":"2028-01-10","end":"2028-01-23"},
+      {"start":"2028-01-24","end":"2028-02-06"},
+      {"start":"2028-02-07","end":"2028-02-20"},
+      {"start":"2028-02-21","end":"2028-03-05"},
+      {"start":"2028-03-06","end":"2028-03-19"},
+      {"start":"2028-03-20","end":"2028-04-02"},
+      {"start":"2028-04-03","end":"2028-04-16"},
+      {"start":"2028-04-17","end":"2028-04-30"},
+      {"start":"2028-05-01","end":"2028-05-14"},
+      {"start":"2028-05-15","end":"2028-05-28"},
+      {"start":"2028-05-29","end":"2028-06-11"},
+      {"start":"2028-06-12","end":"2028-06-25"},
+      {"start":"2028-06-26","end":"2028-07-09"},
+      {"start":"2028-07-10","end":"2028-07-23"},
+      {"start":"2028-07-24","end":"2028-08-06"},
+      {"start":"2028-08-07","end":"2028-08-20"},
+      {"start":"2028-08-21","end":"2028-09-03"},
+      {"start":"2028-09-04","end":"2028-09-17"},
+      {"start":"2028-09-18","end":"2028-10-01"},
+      {"start":"2028-10-02","end":"2028-10-15"},
+      {"start":"2028-10-16","end":"2028-10-29"},
+      {"start":"2028-10-30","end":"2028-11-12"},
+      {"start":"2028-11-13","end":"2028-11-26"},
+      {"start":"2028-11-27","end":"2028-12-10"},
+      {"start":"2028-12-11","end":"2028-12-24"},
+      {"start":"2028-12-25","end":"2029-01-07"}
+    ];
 
-  {"start":"2025-12-01","end":"2025-12-14"},
-  {"start":"2025-12-15","end":"2025-12-28"},
-  {"start":"2025-12-29","end":"2026-01-11"},
-  {"start":"2026-01-12","end":"2026-01-25"},
-  {"start":"2026-01-26","end":"2026-02-08"},
-  {"start":"2026-02-09","end":"2026-02-22"},
-  {"start":"2026-02-23","end":"2026-03-08"},
-  {"start":"2026-03-09","end":"2026-03-22"},
-  {"start":"2026-03-23","end":"2026-04-05"},
-  {"start":"2026-04-06","end":"2026-04-19"},
-  {"start":"2026-04-20","end":"2026-05-03"},
-  {"start":"2026-05-04","end":"2026-05-17"},
-  {"start":"2026-05-18","end":"2026-05-31"},
-  {"start":"2026-06-01","end":"2026-06-14"},
-  {"start":"2026-06-15","end":"2026-06-28"},
-  {"start":"2026-06-29","end":"2026-07-12"},
-  {"start":"2026-07-13","end":"2026-07-26"},
-  {"start":"2026-07-27","end":"2026-08-09"},
-  {"start":"2026-08-10","end":"2026-08-23"},
-  {"start":"2026-08-24","end":"2026-09-06"},
-  {"start":"2026-09-07","end":"2026-09-20"},
-  {"start":"2026-09-21","end":"2026-10-04"},
-  {"start":"2026-10-05","end":"2026-10-18"},
-  {"start":"2026-10-19","end":"2026-11-01"},
-  {"start":"2026-11-02","end":"2026-11-15"},
-  {"start":"2026-11-16","end":"2026-11-29"},
-  {"start":"2026-11-30","end":"2026-12-13"},
-  {"start":"2026-12-14","end":"2026-12-27"},
-  {"start":"2026-12-28","end":"2027-01-10"},
-  {"start":"2027-01-11","end":"2027-01-24"},
-  {"start":"2027-01-25","end":"2027-02-07"},
-  {"start":"2027-02-08","end":"2027-02-21"},
-  {"start":"2027-02-22","end":"2027-03-07"},
-  {"start":"2027-03-08","end":"2027-03-21"},
-  {"start":"2027-03-22","end":"2027-04-04"},
-  {"start":"2027-04-05","end":"2027-04-18"},
-  {"start":"2027-04-19","end":"2027-05-02"},
-  {"start":"2027-05-03","end":"2027-05-16"},
-  {"start":"2027-05-17","end":"2027-05-30"},
-  {"start":"2027-05-31","end":"2027-06-13"},
-  {"start":"2027-06-14","end":"2027-06-27"},
-  {"start":"2027-06-28","end":"2027-07-11"},
-  {"start":"2027-07-12","end":"2027-07-25"},
-  {"start":"2027-07-26","end":"2027-08-08"},
-  {"start":"2027-08-09","end":"2027-08-22"},
-  {"start":"2027-08-23","end":"2027-09-05"},
-  {"start":"2027-09-06","end":"2027-09-19"},
-  {"start":"2027-09-20","end":"2027-10-03"},
-  {"start":"2027-10-04","end":"2027-10-17"},
-  {"start":"2027-10-18","end":"2027-10-31"},
-  {"start":"2027-11-01","end":"2027-11-14"},
-  {"start":"2027-11-15","end":"2027-11-28"},
-  {"start":"2027-11-29","end":"2027-12-12"},
-  {"start":"2027-12-13","end":"2027-12-26"},
-  {"start":"2027-12-27","end":"2028-01-09"},
-  {"start":"2028-01-10","end":"2028-01-23"},
-  {"start":"2028-01-24","end":"2028-02-06"},
-  {"start":"2028-02-07","end":"2028-02-20"},
-  {"start":"2028-02-21","end":"2028-03-05"},
-  {"start":"2028-03-06","end":"2028-03-19"},
-  {"start":"2028-03-20","end":"2028-04-02"},
-  {"start":"2028-04-03","end":"2028-04-16"},
-  {"start":"2028-04-17","end":"2028-04-30"},
-  {"start":"2028-05-01","end":"2028-05-14"},
-  {"start":"2028-05-15","end":"2028-05-28"},
-  {"start":"2028-05-29","end":"2028-06-11"},
-  {"start":"2028-06-12","end":"2028-06-25"},
-  {"start":"2028-06-26","end":"2028-07-09"},
-  {"start":"2028-07-10","end":"2028-07-23"},
-  {"start":"2028-07-24","end":"2028-08-06"},
-  {"start":"2028-08-07","end":"2028-08-20"},
-  {"start":"2028-08-21","end":"2028-09-03"},
-  {"start":"2028-09-04","end":"2028-09-17"},
-  {"start":"2028-09-18","end":"2028-10-01"},
-  {"start":"2028-10-02","end":"2028-10-15"},
-  {"start":"2028-10-16","end":"2028-10-29"},
-  {"start":"2028-10-30","end":"2028-11-12"},
-  {"start":"2028-11-13","end":"2028-11-26"},
-  {"start":"2028-11-27","end":"2028-12-10"},
-  {"start":"2028-12-11","end":"2028-12-24"},
-  {"start":"2028-12-25","end":"2029-01-07"}
-];
-    
     const payPeriods = payPeriodJSON.map(pp => ({
       start: new Date(pp.start),
       end: new Date(pp.end)
@@ -199,23 +213,17 @@
 
     // Find next pay period
     const now = new Date();
-    let nextPayPeriod = payPeriods.find((pp, i) => {
-      if(now >= pp.start && now <= pp.end){
-        return true;
-      }
-      return false;
-    });
-
-    if(nextPayPeriod){
+    let nextPayPeriod = payPeriods.find((pp) => now >= pp.start && now <= pp.end);
+    if (nextPayPeriod) {
       const currentIndex = payPeriods.indexOf(nextPayPeriod);
-      if(currentIndex+1 < payPeriods.length){
-        nextPayPeriod = payPeriods[currentIndex+1];
+      if (currentIndex + 1 < payPeriods.length) {
+        nextPayPeriod = payPeriods[currentIndex + 1];
       }
     }
-    if(!nextPayPeriod) nextPayPeriod = payPeriods[payPeriods.length-1];
+    if (!nextPayPeriod) nextPayPeriod = payPeriods[payPeriods.length - 1];
 
     // --- Find Week 1 and Week 2 Mondays ---
-    function getMonday(d){
+    function getMonday(d) {
       const day = d.getDay();
       const diff = (1 + 7 - day) % 7;
       const monday = new Date(d);
@@ -231,29 +239,27 @@
     const week2Container = document.getElementById("week2");
 
     // --- Floor selection helpers ---
+    function getSelectedChoice() {
+      const el = document.querySelector('input[name="floorChoice"]:checked');
+      return el ? el.value : "7"; // default to 7th
+    }
     function isAllFloorsSelected() {
-      return document.getElementById("floorSelect").value === "all";
+      return getSelectedChoice() === "all";
     }
     function getSelectedFloor() {
-      const v = document.getElementById("floorSelect").value;
-      return v === "all" ? null : parseInt(v, 10); // 7..10 or null
+      const choice = getSelectedChoice();
+      return choice === "all" ? null : parseInt(choice, 10); // 7..10 or null
     }
 
-    // Explicit mapping from floor number -> fl param (based on your system)
+    // Explicit mapping (from your working URLs)
     const FLOOR_TO_FL = { 7: 6, 8: 5, 9: 4, 10: 3 };
 
-    // Get single-floor fl value
     function getSelectedFlValue() {
       const floor = getSelectedFloor();
       return floor == null ? null : FLOOR_TO_FL[floor];
     }
 
-    // All floors (fls) list, in the same mapping order
-    function getAllFloorsFlValues() {
-      return [FLOOR_TO_FL[7], FLOOR_TO_FL[8], FLOOR_TO_FL[9], FLOOR_TO_FL[10]]; // [6,5,4,3]
-    }
-
-    // Ordinal suffix helper (7 -> 7th, 8 -> 8th, ...)
+    // Badge helpers
     function ordinal(n) {
       const s = ["th","st","nd","rd"], v = n % 100;
       return n + (s[(v - 20) % 10] || s[v] || s[0]);
@@ -264,20 +270,16 @@
         : " (" + ordinal(getSelectedFloor()) + " floor)";
     }
 
-    // Build URL with either single floor or all floors
-    function buildLink(dateObj, opts){
-      const { flValue, flsList } = opts; // flValue: number|null, flsList: number[]|[]
+    // Build URL to match your examples exactly
+    function buildLink(dateObj) {
       const year = dateObj.getFullYear();
-      const month = dateObj.getMonth()+1;
+      const month = dateObj.getMonth() + 1;
       const day = dateObj.getDate();
 
-      const useFloorsList = Array.isArray(flsList) && flsList.length > 0;
-      const effectiveFl = useFloorsList ? flsList[0] : flValue;
-
-      const params = new URLSearchParams({
+      const paramsObj = {
         attrs: JSON.stringify({ bools: [], strings: [], numberRels: {}, dept: null }),
         category: 2,
-        cty: null, // null is fine; will serialize to 'null'
+        cty: "null",
         end: JSON.stringify({
           year,
           month,
@@ -287,8 +289,6 @@
           tzIdValue: "America/New_York",
           discriminator: "AqDate"
         }),
-        fl: effectiveFl,
-        fls: JSON.stringify(useFloorsList ? flsList : []),
         loc: JSON.stringify({ sysidVenue: 1, sysidVenues: [], tzIdValue: "America/New_York" }),
         rType: 1,
         rule: JSON.stringify({ flags: { isPattern: false } }),
@@ -303,7 +303,17 @@
         }),
         ts: Date.now(),
         types: JSON.stringify([74, 13])
-      });
+      };
+
+      if (isAllFloorsSelected()) {
+        // All floors per your sample: no 'fl', and 'fls' is an empty array
+        paramsObj.fls = JSON.stringify([]);
+      } else {
+        paramsObj.fl  = getSelectedFlValue();   // 7->6, 8->5, 9->4, 10->3
+        paramsObj.fls = JSON.stringify([]);     // empty list
+      }
+
+      const params = new URLSearchParams(paramsObj);
       return baseURL + "?" + params.toString();
     }
 
@@ -316,26 +326,22 @@
     }
 
     // Build week lines and store each date for later refresh
-    function addWeek(container, startDate){
+    function addWeek(container, startDate) {
       let addedDays = 0;
       let i = 0;
-      while(addedDays < WEEKDAYS_PER_WEEK){
+      while (addedDays < WEEKDAYS_PER_WEEK) {
         const dateObj = new Date(startDate);
         dateObj.setDate(startDate.getDate() + i);
         const dow = dateObj.getDay();
-        if(dow !== 0 && dow !== 6){ // skip weekends
-          const opts = isAllFloorsSelected()
-            ? { flValue: null, flsList: getAllFloorsFlValues() }
-            : { flValue: getSelectedFlValue(), flsList: [] };
-
-          const url = buildLink(dateObj, opts);
+        if (dow !== 0 && dow !== 6) { // skip weekends
+          const url = buildLink(dateObj);
           const dateString = dateObj.toLocaleDateString("en-US", {
-            weekday:"short", month:"long", day:"numeric", year:"numeric"
+            weekday: "short", month: "long", day: "numeric", year: "numeric"
           });
 
           const checkbox = document.createElement("input");
           checkbox.type = "checkbox";
-          checkbox.dataset.date = dateObj.toISOString(); // store date for rebuilding URL
+          checkbox.dataset.date = dateObj.toISOString(); // store date
 
           const label = document.createElement("a");
           label.href = url;
@@ -349,14 +355,13 @@
           line.appendChild(checkbox);
           line.appendChild(label);
 
-          // Floor badge
           const floorBadge = document.createElement("span");
           floorBadge.className = "floor-badge";
           floorBadge.innerText = getFloorBadgeText();
           line.appendChild(floorBadge);
 
           const holidayName = getHolidayName(dateObj);
-          if(holidayName){
+          if (holidayName) {
             const span = document.createElement("span");
             span.className = "holiday";
             span.innerText = " (" + holidayName + ")";
@@ -373,18 +378,14 @@
     addWeek(week1Container, week1Start);
     addWeek(week2Container, week2Start);
 
-    // Refresh all link hrefs when the floor selection changes
+    // Refresh links and badges when floor choice changes
     function refreshLinksForSelectedFloor() {
       const anchors = document.querySelectorAll(".date-line a[data-date]");
       anchors.forEach(a => {
         const date = new Date(a.dataset.date);
-        const opts = isAllFloorsSelected()
-          ? { flValue: null, flsList: getAllFloorsFlValues() }
-          : { flValue: getSelectedFlValue(), flsList: [] };
-        a.href = buildLink(date, opts);
+        a.href = buildLink(date);
       });
     }
-    // Refresh all floor badges text when the floor changes
     function refreshFloorBadges() {
       const text = getFloorBadgeText();
       document.querySelectorAll(".floor-badge").forEach(el => {
@@ -392,24 +393,21 @@
       });
     }
 
-    // Update both links and badges on floor change
-    document.getElementById("floorSelect").addEventListener("change", () => {
-      refreshLinksForSelectedFloor();
-      refreshFloorBadges();
+    document.querySelectorAll('input[name="floorChoice"]').forEach(radio => {
+      radio.addEventListener("change", () => {
+        refreshLinksForSelectedFloor();
+        refreshFloorBadges();
+      });
     });
 
-    // Build URL at click time using current floor selection
+    // Build URL at click time using the current selection
     document.getElementById("openButton").addEventListener("click", () => {
       const checkboxes = document.querySelectorAll("input[type='checkbox'][data-date]");
-      const opts = isAllFloorsSelected()
-        ? { flValue: null, flsList: getAllFloorsFlValues() }
-        : { flValue: getSelectedFlValue(), flsList: [] };
-
-      checkboxes.forEach(cb=>{
-        if(cb.checked) {
+      checkboxes.forEach(cb => {
+        if (cb.checked) {
           const date = new Date(cb.dataset.date);
-          const url = buildLink(date, opts);
-          window.open(url,"_blank");
+          const url = buildLink(date);
+          window.open(url, "_blank");
         }
       });
     });
